@@ -129,3 +129,11 @@ main>*{animation:pageIn .55s cubic-bezier(.2,.8,.2,1) both}
 .route-leg>strong{font-size:10px;color:var(--gold);white-space:nowrap}.route-leg .danger-text{font-size:16px}
 .route-leg-actions{display:flex;align-items:center;justify-content:space-between;padding-top:6px}.route-add{color:var(--cyan);font-size:9px}.route-total{font-size:8px;color:var(--gold)}.leg-empty{padding:5px 2px;color:var(--muted);font-size:8px}
 @media(max-width:820px){.route-legs{margin-top:7px;padding:6px}.route-leg{gap:5px;padding:7px 1px}.leg-main b{font-size:9px}.leg-main small{font-size:7px}.route-leg>strong{font-size:9px}.route-add{font-size:8px}}
+
+
+/* Route stop controls */
+.stop-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stop-top h4{margin:0;flex:1;min-width:120px}
+.stop-tools{display:flex;gap:5px;align-items:center}
+.stop-tools .mini-btn{padding:5px 8px;font-size:11px}
+@media(max-width:600px){.stop-tools{width:100%;margin-left:34px}.stop-tools .mini-btn{min-height:30px}}
