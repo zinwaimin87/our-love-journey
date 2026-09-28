@@ -44,7 +44,7 @@ function total(t){return t.expenses.reduce((s,e)=>s+Number(e.amount||0),0)}
 function categorySummary(t){const m={};t.expenses.forEach(e=>m[e.category]=(m[e.category]||0)+Number(e.amount||0));return Object.keys(m).length?Object.entries(m).map(([k,v])=>`${esc(k)}: ฿${money(v)}`).join(" · "):"No expenses yet"}
 function history(a){
  const done=db.trips.filter(t=>t.finished);
- a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+${done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`};
+ a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+(done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`);
 }
 function settings(a){
  const p=db.profile;
