@@ -1,6 +1,6 @@
 const KEY="our-love-journey-v1";
-const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null};
-let db=load();
+const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
+let db=load();\nif(!Array.isArray(db.memories))db.memories=[];
 function load(){try{const current=localStorage.getItem(KEY),legacy=localStorage.getItem("our-love-journey-v1");const data=JSON.parse(current||legacy||"null")||structuredClone(blank);if(!current&&legacy)localStorage.setItem(KEY,JSON.stringify(data));return data}catch{return structuredClone(blank)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -45,6 +45,23 @@ function tripDetail(t){
  <div class="section-title"><h2>Expenses</h2><button class="btn secondary" id="addExpense">+ Add Expense</button></div><div class="split"><div class="card panel"><div class="muted">Trip Total</div><div class="total">฿${money(total(t))}</div></div><div class="card panel"><div class="muted">Categories</div><p class="muted" style="line-height:1.8">${categorySummary(t)}</p></div></div><div class="expense-list">${t.expenses.length?t.expenses.map(e=>`<div class="expense"><div><b>${esc(e.category)}</b><small>${e.date||""} · ${esc(e.note||"")}</small></div><strong>฿${money(e.amount)}</strong></div>`).join(""):`<div class="empty">No expenses recorded yet.</div>`}</div></div>`}
 function total(t){return t.expenses.reduce((s,e)=>s+Number(e.amount||0),0)}
 function categorySummary(t){const m={};t.expenses.forEach(e=>m[e.category]=(m[e.category]||0)+Number(e.amount||0));return Object.keys(m).length?Object.entries(m).map(([k,v])=>`${esc(k)}: ฿${money(v)}`).join(" · "):"No expenses yet"}
+function memories(a){
+ const items=(db.memories||[]).slice().sort((x,y)=>new Date(y.date||0)-new Date(x.date||0));
+ a.innerHTML=shellHead("Memories","Keep your favorite photos and little moments in one private album.")+`
+ <div class="memory-hero card"><div class="memory-orb">✦</div><div><div class="eyebrow">OUR LITTLE MOMENTS</div><h2>${items.length} memories</h2><p class="muted">Photos are compressed and stored only in this browser.</p></div><button class="btn" id="addGlobalMemory">+ Add Photo</button></div>
+ <div class="memory-toolbar"><div class="memory-filter active" data-memory-filter="all">All <b>${items.length}</b></div><div class="memory-filter" data-memory-filter="favorite">Favorites <b>${items.filter(x=>x.favorite).length}</b></div></div>
+ <div id="memoryGrid" class="global-memory-grid">${items.length?items.map(memoryCard).join(""):`<div class="card empty"><div class="big">📸</div><b>No memories yet</b><p>Add your first photo and make this album yours.</p></div>`}</div>`;
+ document.getElementById("addGlobalMemory")?.addEventListener("click",()=>chooseGlobalMemory());
+}
+function memoryCard(m){
+ return `<article class="memory-card card" data-favorite-card="${m.favorite?"1":"0"}"><div class="memory-image"><img src="${m.data}" alt="${esc(m.caption||"Memory")}"><button class="memory-star ${m.favorite?"on":""}" data-memory-favorite="${m.id}">${m.favorite?"★":"☆"}</button></div><div class="memory-info"><b>${esc(m.caption||"Beautiful moment")}</b><small>${m.date?new Date(m.date+"T00:00:00").toLocaleDateString():"No date"} ${m.location?"· "+esc(m.location):""}</small><button class="mini-btn danger-text" data-delete-memory-global="${m.id}">Delete</button></div></article>`
+}
+async function chooseGlobalMemory(){
+ const input=document.createElement("input");input.type="file";input.accept="image/*";input.multiple=true;
+ input.onchange=async()=>{const files=[...input.files];if(!files.length)return;let saved=0;
+ for(const f of files){try{const data=await resizeImage(f,1400);const caption=prompt("Memory caption (optional)",f.name.replace(/\\.[^/.]+$/,""));const date=prompt("Memory date (YYYY-MM-DD)",today());db.memories.push({id:uid(),data,caption:caption||"",date:date||today(),favorite:false,createdAt:new Date().toISOString()});saved++}catch{}}
+ save();toast(saved+" photo"+(saved===1?"":"s")+" saved");render()};input.click()
+}
 function history(a){
  const done=db.trips.filter(t=>t.finished);
  a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+(done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`);
@@ -59,6 +76,10 @@ function settings(a){
  document.getElementById("clear").onclick=()=>{if(confirm("Clear all Love Journey data from this device?")){db=structuredClone(blank);save();render();toast("All data cleared")}}
 }
 function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>`<option>${o}</option>`).join("")}</select></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}\ndocument.addEventListener("click",e=>{
+ const mf=e.target.closest("[data-memory-filter]");if(mf){document.querySelectorAll("[data-memory-filter]").forEach(x=>x.classList.remove("active"));mf.classList.add("active");const type=mf.dataset.memoryFilter;document.querySelectorAll("[data-favorite-card]").forEach(x=>x.style.display=(type==="favorite"&&x.dataset.favoriteCard!=="1")?"none":"");return}
+ const fav=e.target.closest("[data-memory-favorite]");if(fav){const m=db.memories.find(x=>x.id===fav.dataset.memoryFavorite);if(m){m.favorite=!m.favorite;save();render()};return}
+ const delm=e.target.closest("[data-delete-memory-global]");if(delm){if(confirm("Delete this memory photo?")){db.memories=db.memories.filter(x=>x.id!==delm.dataset.deleteMemory);save();render();toast("Memory deleted")}return}
+
  const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
  const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go("travel");return}
  const reach=e.target.closest("[data-reach]");if(reach){const t=db.trips.find(x=>x.id===db.activeTripId),s=t.stops.find(x=>x.id===reach.dataset.reach);s.reached=true;s.reachedAt=new Date().toISOString();save();render();toast("Route reached and saved");return}
