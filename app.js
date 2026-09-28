@@ -17,6 +17,7 @@ function normalizeData(raw){
   }));
   d.activeTripId=d.trips.some(t=>t.id===d.activeTripId)?d.activeTripId:null;
   d.memories=Array.isArray(d.memories)?d.memories:[];
+  d.specialDays=Array.isArray(d.specialDays)?d.specialDays:[];
   return d;
 }
 function load(){
@@ -43,7 +44,7 @@ function render(){
  if(!app)return;
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
  try{
-   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
+   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="calendar")calendar(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
  }catch(e){
    console.error("Love Journey render error",e);
@@ -59,6 +60,31 @@ function home(a){
  <div class="grid"><div class="card stat"><small>Trips</small><div class="num">${db.trips.length}</div><small>saved journeys</small></div><div class="card stat"><small>Reached</small><div class="num">${db.trips.reduce((s,t)=>s+t.stops.filter(x=>x.reached).length,0)}</div><small>places reached</small></div><div class="card stat"><small>Memories</small><div class="num">${db.trips.reduce((s,t)=>s+(t.memories?.length||0),0)}</div><small>saved memories</small></div><div class="card stat"><small>Expenses</small><div class="num">฿${money(db.trips.reduce((s,t)=>s+t.expenses.reduce((q,e)=>q+Number(e.amount||0),0),0))}</div><small>total recorded</small></div></div>
  ${active?`<div class="section-title"><h2>Continue Traveling</h2></div><div class="card trip-card"><div><span class="badge">Active</span><h3>${esc(active.name)}</h3><p>${active.stops.filter(x=>x.reached).length} / ${active.stops.length} stops reached · ${esc(active.destination||"")}</p></div><button class="btn" data-open-trip="${active.id}">Continue →</button></div>`:''}`;
  if(age){const update=()=>{const s=Math.floor((Date.now()-new Date(db.profile.startDate).getTime())/1000);const el=document.getElementById("liveSec");if(el)el.textContent=s%60};update();setInterval(update,1000)}
+}
+function nextOccurrence(date){
+  if(!date)return null;
+  const parts=String(date).split("-").map(Number); if(parts.length!==3)return null;
+  const now=new Date(); let d=new Date(now.getFullYear(),parts[1]-1,parts[2]);
+  if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()))d.setFullYear(now.getFullYear()+1);
+  return d;
+}
+function daysUntil(d){
+  if(!d)return 0;
+  const a=new Date();a.setHours(0,0,0,0);
+  const b=new Date(d);b.setHours(0,0,0,0);
+  return Math.max(0,Math.ceil((b-a)/86400000));
+}
+function specialDayCard(x){
+  const next=nextOccurrence(x.date);
+  return `<article class="special-card card"><div class="special-icon">${x.type==="Birthday"?"🎂":x.type==="Anniversary"?"♡":x.type==="First Trip"?"✈":x.type==="First Date"?"☕":x.type==="First Meet"?"✨":"★"}</div><div class="special-main"><span class="badge">${esc(x.type)}</span><h3>${esc(x.title)}</h3><p>${esc(x.date)}${x.note?" · "+esc(x.note):""}</p></div><div class="special-count"><b>${daysUntil(next)}</b><small>days</small></div><button class="mini-btn danger-text" data-delete-special="${x.id}">Delete</button></article>`;
+}
+function calendar(a){
+ const list=(db.specialDays||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+ const upcoming=list.map(x=>({...x,next:nextOccurrence(x.date)})).sort((x,y)=>x.next-y.next);
+ const next=upcoming[0];
+ a.innerHTML=shellHead("Couple Calendar","Keep the important days of your story in one private timeline.")+
+ `<div class="calendar-hero card"><div class="calendar-orb">♡</div><div><div class="eyebrow">SPECIAL DAYS</div><h2>${list.length} saved day${list.length===1?"":"s"}</h2><p class="muted">${next?`Next: <b>${esc(next.title)}</b> · ${daysUntil(next.next)} days`:"Add your first special day."}</p></div><button class="btn" id="addSpecial">+ Add Day</button></div>
+ <div class="special-grid">${list.length?list.map(specialDayCard).join(""):`<div class="card empty"><div class="big">♡</div><b>No special days yet</b><p>Add anniversary, birthday, first date or any day you want to remember.</p></div>`}</div>`;
 }
 function anniversary(a){
  const p=db.profile;
@@ -116,6 +142,15 @@ document.addEventListener("click",e=>{
  const mf=e.target.closest("[data-memory-filter]");if(mf){document.querySelectorAll("[data-memory-filter]").forEach(x=>x.classList.remove("active"));mf.classList.add("active");const type=mf.dataset.memoryFilter;document.querySelectorAll("[data-favorite-card]").forEach(x=>x.style.display=(type==="favorite"&&x.dataset.favoriteCard!=="1")?"none":"");return}
  const fav=e.target.closest("[data-memory-favorite]");if(fav){const m=db.memories.find(x=>x.id===fav.dataset.memoryFavorite);if(m){m.favorite=!m.favorite;save();render()};return}
  const delm=e.target.closest("[data-delete-memory-global]");if(delm){if(confirm("Delete this memory photo?")){db.memories=db.memories.filter(x=>x.id!==delm.dataset.deleteMemory);save();render();toast("Memory deleted")}return}
+
+ const delSpecial=e.target.closest("[data-delete-special]");
+ if(delSpecial){if(confirm("Delete this special day?")){db.specialDays=db.specialDays.filter(x=>x.id!==delSpecial.dataset.deleteSpecial);save();render();toast("Special day deleted")}return}
+ if(e.target.id==="addSpecial"){openFormModal("Add Special Day",[
+  {id:"title",label:"Title",type:"text",placeholder:"e.g. Our First Date"},
+  {id:"type",label:"Type",type:"select",options:["Anniversary","Birthday","First Meet","First Date","First Trip","Custom"]},
+  {id:"date",label:"Date",type:"date",value:today()},
+  {id:"note",label:"Note",type:"text",placeholder:"Optional note"}
+ ],vals=>{if(!vals.title.trim())return toast("Title is required");db.specialDays.push({id:uid(),title:vals.title.trim(),type:vals.type,date:vals.date,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Special day saved")});return}
 
  const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
  const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go("travel");return}
