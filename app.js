@@ -1,7 +1,7 @@
 const KEY="our-love-journey-v1";
 const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null};
 let db=load();
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(blank)}catch{return structuredClone(blank)}}
+function load(){try{const current=localStorage.getItem(KEY),legacy=localStorage.getItem("our-love-journey-v1");const data=JSON.parse(current||legacy||"null")||structuredClone(blank);if(!current&&legacy)localStorage.setItem(KEY,JSON.stringify(data));return data}catch{return structuredClone(blank)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
