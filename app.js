@@ -1,0 +1,68 @@
+const KEY="our-love-journey-v1";
+const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null};
+let db=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(blank)}catch{return structuredClone(blank)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
+function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
+function pageName(){return location.hash.slice(1)||"home"}
+function go(p){location.hash=p}
+function render(){
+ const p=pageName(),app=document.getElementById("app");
+ document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
+ if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="history")history(app); else settings(app);
+}
+function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
+function home(a){
+ const n1=db.profile.name1||"Your Name",n2=db.profile.name2||"Love";
+ const age=ageParts(db.profile.startDate),active=db.trips.find(t=>t.id===db.activeTripId);
+ a.innerHTML=`<section class="hero"><div class="card hero-card"><div class="eyebrow">A PRIVATE PLACE FOR TWO</div><h1>${esc(n1)} <span>∞</span> ${esc(n2)}</h1><p>Keep your favorite moments, journeys, routes and little memories in one beautiful place. No login. No Gmail. Just yours.</p>${age?`<div class="countdown"><div class="timebox"><b>${age.years}</b><small>Years</small></div><div class="timebox"><b>${age.months}</b><small>Months</small></div><div class="timebox"><b>${age.days}</b><small>Days</small></div><div class="timebox"><b id="liveSec">0</b><small>Seconds</small></div></div>`:''}<div class="actions"><button class="btn" data-page="anniversary">♡ Anniversary</button><button class="btn secondary" data-page="travel">✈ Start a Journey</button></div></div><div class="card orb"><div class="orb-ring"></div></div></section>
+ <div class="section-title"><h2>Your Journey</h2><span class="muted">${db.trips.length} trip(s)</span></div>
+ <div class="grid"><div class="card stat"><small>Trips</small><div class="num">${db.trips.length}</div><small>saved journeys</small></div><div class="card stat"><small>Reached</small><div class="num">${db.trips.reduce((s,t)=>s+t.stops.filter(x=>x.reached).length,0)}</div><small>places reached</small></div><div class="card stat"><small>Memories</small><div class="num">${db.trips.reduce((s,t)=>s+(t.memories?.length||0),0)}</div><small>saved memories</small></div><div class="card stat"><small>Expenses</small><div class="num">฿${money(db.trips.reduce((s,t)=>s+t.expenses.reduce((q,e)=>q+Number(e.amount||0),0),0))}</div><small>total recorded</small></div></div>
+ ${active?`<div class="section-title"><h2>Continue Traveling</h2></div><div class="card trip-card"><div><span class="badge">Active</span><h3>${esc(active.name)}</h3><p>${active.stops.filter(x=>x.reached).length} / ${active.stops.length} stops reached · ${esc(active.destination||"")}</p></div><button class="btn" data-open-trip="${active.id}">Continue →</button></div>`:''}`;
+ if(age){const update=()=>{const s=Math.floor((Date.now()-new Date(db.profile.startDate).getTime())/1000);const el=document.getElementById("liveSec");if(el)el.textContent=s%60};update();setInterval(update,1000)}
+}
+function anniversary(a){
+ const p=db.profile;
+ a.innerHTML=shellHead("Our Anniversary","Set your names and relationship date whenever you're ready.")+`<div class="card panel"><div class="form-grid"><div class="field"><label>First name</label><input id="n1" value="${esc(p.name1)}" placeholder="Enter name"></div><div class="field"><label>Second name</label><input id="n2" value="${esc(p.name2)}" placeholder="Enter name"></div><div class="field"><label>Relationship / Anniversary date</label><input id="date" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveProfile">Save</button></div></div>${p.startDate?renderAge(p.startDate):`<div class="card empty"><div class="big">♡</div>Add your anniversary date to start the live counter.</div>`}`;
+ document.getElementById("saveProfile").onclick=()=>{db.profile.name1=document.getElementById("n1").value.trim();db.profile.name2=document.getElementById("n2").value.trim();db.profile.startDate=document.getElementById("date").value;save();toast("Anniversary saved");render()}
+}
+function renderAge(d){const x=ageParts(d);return `<div class="card panel"><div class="eyebrow">TOGETHER FOR</div><div class="countdown"><div class="timebox"><b>${x.years}</b><small>Years</small></div><div class="timebox"><b>${x.months}</b><small>Months</small></div><div class="timebox"><b>${x.days}</b><small>Days</small></div><div class="timebox"><b id="annSec">0</b><small>Seconds</small></div></div><p class="muted" style="margin-top:18px">Started on ${new Date(d+"T00:00").toLocaleDateString()}</p></div>`}
+function travel(a){
+ const active=db.trips.find(t=>t.id===db.activeTripId);
+ a.innerHTML=shellHead("Traveling","Plan routes, mark places as reached and keep every expense with the trip.")+
+ (active?tripDetail(active):`<div class="card panel"><div class="form-grid"><div class="field"><label>Trip name</label><input id="tripName" placeholder="e.g. Weekend Escape"></div><div class="field"><label>Destination</label><input id="dest" placeholder="Where are you going?"></div><div class="field"><label>Start date</label><input id="sd" type="date"></div><div class="field"><label>End date</label><input id="ed" type="date"></div></div><div class="actions"><button class="btn" id="createTrip">Create Trip</button></div></div>${db.trips.length?'<div class="section-title"><h2>Saved Trips</h2></div>'+db.trips.slice().reverse().map(tripMini).join(""):''}`);
+}
+function tripMini(t){return `<div class="card trip-card" style="margin-bottom:12px"><div><span class="badge">${t.finished?"Finished":"Saved"}</span><h3>${esc(t.name)}</h3><p>${esc(t.destination||"")} · ${t.stops.length} stops · ฿${money(total(t))}</p></div><button class="btn secondary" data-open-trip="${t.id}">Open</button></div>`}
+function tripDetail(t){
+ return `<div class="card panel"><div class="trip-card" style="padding:0;background:none;border:0"><div><span class="badge">${t.finished?"Finished":"Active"}</span><h2 style="margin:10px 0 5px">${esc(t.name)}</h2><p>${esc(t.destination||"")} · ${t.startDate||""} ${t.endDate?"→ "+t.endDate:""}</p></div><div class="actions"><button class="btn secondary" id="backTrips">← Back</button>${!t.finished?`<button class="btn gold" id="finishTrip">Finish Traveling</button>`:''}</div></div>
+ <div class="section-title"><h2>Route</h2><button class="btn secondary" id="addStop">+ Add Stop</button></div><div class="timeline">${t.stops.length?t.stops.map((s,i)=>`<div class="stop ${s.reached?"reached":""}"><div class="stop-dot"></div><div><h4>${esc(s.name)}</h4><small>${s.date||"No planned date"} ${s.time||""}${s.reached?" · Reached "+new Date(s.reachedAt).toLocaleString():""}</small>${s.note?`<p class="muted">${esc(s.note)}</p>`:''}</div><div>${!t.finished&&!s.reached?`<button class="btn secondary" data-reach="${s.id}">Reached</button>`:''}</div></div>`).join(""):`<div class="empty">No route stops yet. Add your first place.</div>`}</div>
+ <div class="section-title"><h2>Expenses</h2><button class="btn secondary" id="addExpense">+ Add Expense</button></div><div class="split"><div class="card panel"><div class="muted">Trip Total</div><div class="total">฿${money(total(t))}</div></div><div class="card panel"><div class="muted">Categories</div><p class="muted" style="line-height:1.8">${categorySummary(t)}</p></div></div><div class="expense-list">${t.expenses.length?t.expenses.map(e=>`<div class="expense"><div><b>${esc(e.category)}</b><small>${e.date||""} · ${esc(e.note||"")}</small></div><strong>฿${money(e.amount)}</strong></div>`).join(""):`<div class="empty">No expenses recorded yet.</div>`}</div></div>`}
+function total(t){return t.expenses.reduce((s,e)=>s+Number(e.amount||0),0)}
+function categorySummary(t){const m={};t.expenses.forEach(e=>m[e.category]=(m[e.category]||0)+Number(e.amount||0));return Object.keys(m).length?Object.entries(m).map(([k,v])=>`${esc(k)}: ฿${money(v)}`).join(" · "):"No expenses yet"}
+function history(a){
+ const done=db.trips.filter(t=>t.finished);
+ a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+${done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`};
+}
+function settings(a){
+ const p=db.profile;
+ a.innerHTML=shellHead("Settings","Private, simple and stored on this device.")+`<div class="card panel"><h2>Couple Profile</h2><div class="form-grid"><div class="field"><label>First name</label><input id="sn1" value="${esc(p.name1)}"></div><div class="field"><label>Second name</label><input id="sn2" value="${esc(p.name2)}"></div><div class="field"><label>Anniversary date</label><input id="sd2" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveSet">Save Changes</button></div></div>
+ <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div>`;
+ document.getElementById("saveSet").onclick=()=>{db.profile.name1=document.getElementById("sn1").value.trim();db.profile.name2=document.getElementById("sn2").value.trim();db.profile.startDate=document.getElementById("sd2").value;save();toast("Settings saved")}
+ document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup.json";a.click();URL.revokeObjectURL(u)}
+ document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
+ document.getElementById("clear").onclick=()=>{if(confirm("Clear all Love Journey data from this device?")){db=structuredClone(blank);save();render();toast("All data cleared")}}
+}
+document.addEventListener("click",e=>{
+ const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
+ const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go("travel");return}
+ const reach=e.target.closest("[data-reach]");if(reach){const t=db.trips.find(x=>x.id===db.activeTripId),s=t.stops.find(x=>x.id===reach.dataset.reach);s.reached=true;s.reachedAt=new Date().toISOString();save();render();toast("Route reached and saved");return}
+ if(e.target.id==="createTrip"){const n=document.getElementById("tripName").value.trim();if(!n)return toast("Enter a trip name");const t={id:crypto.randomUUID(),name:n,destination:document.getElementById("dest").value.trim(),startDate:document.getElementById("sd").value,endDate:document.getElementById("ed").value,stops:[],expenses:[],memories:[],finished:false,createdAt:new Date().toISOString()};db.trips.push(t);db.activeTripId=t.id;save();render();toast("Trip created")}
+ if(e.target.id==="backTrips"){db.activeTripId=null;save();render();return}
+ if(e.target.id==="addStop"){const t=db.trips.find(x=>x.id===db.activeTripId),name=prompt("Place / route stop name");if(!name)return;const date=prompt("Planned date (YYYY-MM-DD)",""),time=prompt("Planned time",""),note=prompt("Note","");t.stops.push({id:crypto.randomUUID(),name,date,time,note,reached:false});save();render();toast("Route stop added")}
+ if(e.target.id==="addExpense"){const t=db.trips.find(x=>x.id===db.activeTripId),category=prompt("Category: Transportation / Fuel / Food / Hotel / Tickets / Souvenir / Other","Food");if(!category)return;const amount=prompt("Amount (THB)","0"),date=prompt("Date (YYYY-MM-DD)",new Date().toISOString().slice(0,10)),note=prompt("Note","");t.expenses.push({id:crypto.randomUUID(),category,amount:Number(amount)||0,date,note});save();render();toast("Expense saved")}
+ if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=null;save();go("history");toast("Journey archived")}}
+});
+window.addEventListener("hashchange",render);render();
