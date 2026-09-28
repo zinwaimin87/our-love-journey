@@ -1,12 +1,37 @@
-const KEY="our-love-journey-v1";
+const KEY="our-love-journey-v2";
 const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
+
+function normalizeData(raw){
+  const d=raw&&typeof raw==="object"?raw:{};
+  d.profile=d.profile&&typeof d.profile==="object"?d.profile:{};
+  d.profile.name1=String(d.profile.name1||"");
+  d.profile.name2=String(d.profile.name2||"");
+  d.profile.startDate=String(d.profile.startDate||"");
+  d.trips=Array.isArray(d.trips)?d.trips:[];
+  d.trips=d.trips.map(t=>({
+    id:t?.id||uid(),name:String(t?.name||"Untitled Trip"),destination:String(t?.destination||""),
+    startDate:String(t?.startDate||""),endDate:String(t?.endDate||""),
+    stops:Array.isArray(t?.stops)?t.stops:[],expenses:Array.isArray(t?.expenses)?t.expenses:[],
+    memories:Array.isArray(t?.memories)?t.memories:[],finished:!!t?.finished,
+    createdAt:t?.createdAt||new Date().toISOString(),finishedAt:t?.finishedAt||null
+  }));
+  d.activeTripId=d.trips.some(t=>t.id===d.activeTripId)?d.activeTripId:null;
+  d.memories=Array.isArray(d.memories)?d.memories:[];
+  return d;
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY)||localStorage.getItem("our-love-journey-v1");
+    const data=normalizeData(raw?JSON.parse(raw):structuredClone(blank));
+    localStorage.setItem(KEY,JSON.stringify(data));
+    return data;
+  }catch(e){console.error("Love Journey data load error",e);return structuredClone(blank)}
+}
 let db=load();
-if(!Array.isArray(db.memories))db.memories=[];
-function load(){try{const current=localStorage.getItem(KEY),legacy=localStorage.getItem("our-love-journey-v1");const data=JSON.parse(current||legacy||"null")||structuredClone(blank);if(!current&&legacy)localStorage.setItem(KEY,JSON.stringify(data));return data}catch{return structuredClone(blank)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function save(){db=normalizeData(db);localStorage.setItem(KEY,JSON.stringify(db))}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
-function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
+function toast(t){const x=document.getElementById("toast");if(!x)return;x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
 function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
 function pageName(){return location.hash.slice(1)||"home"}
 function go(p){location.hash=p}
@@ -15,8 +40,15 @@ function setup3D(){
 }
 function render(){
  const p=pageName(),app=document.getElementById("app");
+ if(!app)return;
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
- if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app); setup3D();
+ try{
+   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
+   setup3D();
+ }catch(e){
+   console.error("Love Journey render error",e);
+   app.innerHTML=`<section class="card panel" style="margin-top:20px"><div class="eyebrow">OUR LOVE JOURNEY</div><h1>Welcome back ♡</h1><p class="muted">The page recovered from an old saved-data format. Your saved information is being kept safe.</p><button class="btn" onclick="location.hash='home';render()">Open Home</button></section>`;
+ }
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
 function home(a){
