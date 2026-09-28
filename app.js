@@ -1,6 +1,7 @@
 const KEY="our-love-journey-v1";
 const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
-let db=load();\nif(!Array.isArray(db.memories))db.memories=[];
+let db=load();
+if(!Array.isArray(db.memories))db.memories=[];
 function load(){try{const current=localStorage.getItem(KEY),legacy=localStorage.getItem("our-love-journey-v1");const data=JSON.parse(current||legacy||"null")||structuredClone(blank);if(!current&&legacy)localStorage.setItem(KEY,JSON.stringify(data));return data}catch{return structuredClone(blank)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -15,7 +16,7 @@ function setup3D(){
 function render(){
  const p=pageName(),app=document.getElementById("app");
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
- if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="history")history(app); else settings(app); setup3D();
+ if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app); setup3D();
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
 function home(a){
@@ -75,7 +76,11 @@ function settings(a){
  document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
  document.getElementById("clear").onclick=()=>{if(confirm("Clear all Love Journey data from this device?")){db=structuredClone(blank);save();render();toast("All data cleared")}}
 }
-function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>`<option>${o}</option>`).join("")}</select></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}\ndocument.addEventListener("click",e=>{
+function today(){return new Date().toISOString().slice(0,10)}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function resizeImage(file,max){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL("image/jpeg",.78))};img.onerror=reject;img.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>`<option>${o}</option>`).join("")}</select></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}
+document.addEventListener("click",e=>{
  const mf=e.target.closest("[data-memory-filter]");if(mf){document.querySelectorAll("[data-memory-filter]").forEach(x=>x.classList.remove("active"));mf.classList.add("active");const type=mf.dataset.memoryFilter;document.querySelectorAll("[data-favorite-card]").forEach(x=>x.style.display=(type==="favorite"&&x.dataset.favoriteCard!=="1")?"none":"");return}
  const fav=e.target.closest("[data-memory-favorite]");if(fav){const m=db.memories.find(x=>x.id===fav.dataset.memoryFavorite);if(m){m.favorite=!m.favorite;save();render()};return}
  const delm=e.target.closest("[data-delete-memory-global]");if(delm){if(confirm("Delete this memory photo?")){db.memories=db.memories.filter(x=>x.id!==delm.dataset.deleteMemory);save();render();toast("Memory deleted")}return}
