@@ -9,10 +9,13 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
 function pageName(){return location.hash.slice(1)||"home"}
 function go(p){location.hash=p}
+function setup3D(){
+ document.querySelectorAll(".card,.timebox,.btn").forEach(el=>{if(el.dataset.tilt)return;el.dataset.tilt="1";el.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(700px) rotateX(${(-y*4).toFixed(2)}deg) rotateY(${(x*5).toFixed(2)}deg) translateZ(2px)`});el.addEventListener("pointerleave",()=>{el.style.transform=""})})
+}
 function render(){
  const p=pageName(),app=document.getElementById("app");
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
- if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="history")history(app); else settings(app);
+ if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="travel")travel(app); else if(p==="history")history(app); else settings(app); setup3D();
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
 function home(a){
