@@ -552,3 +552,5 @@ document.addEventListener("click",e=>{
 });
 window.addEventListener("hashchange",render);render();
  const refreshTripCountdown=()=>{const h=homeUpcoming(),el=document.getElementById("homeTripCountdown");if(!el)return;const tc=tripCountdown(h.nextTrip);el.textContent=!h.nextTrip?"Plan your next journey":tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m "+tc.seconds+"s":"Planned"};clearInterval(window.__homeTripTimer);refreshTripCountdown();window.__homeTripTimer=setInterval(refreshTripCountdown,1000);
+
+window.addEventListener("error",e=>{const app=document.getElementById("app");if(app&&e.error){console.error("Boot/runtime error",e.error);}});
