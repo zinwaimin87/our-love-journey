@@ -1166,3 +1166,25 @@ button:active,.btn:active,.nav-btn:active,.tab:active,.icon-btn:active,.quick-ca
  .anniversary-milestone-list{grid-template-columns:repeat(2,1fr);gap:7px}
 }
 @media(max-width:390px){.ann-live-box b{font-size:17px}.ann-milestone{padding:10px}.ann-milestone b{font-size:10px}}
+
+/* === TRAVEL PREMIUM CONTROL CENTER === */
+.trip-command-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 18px;margin:12px 0;border:1px solid rgba(73,224,255,.18);border-radius:20px;overflow:hidden;background:radial-gradient(circle at 90% 10%,rgba(138,91,255,.18),transparent 32%),linear-gradient(135deg,rgba(13,31,70,.94),rgba(5,9,28,.98));box-shadow:0 18px 38px rgba(0,0,0,.2)}
+.trip-command-hero:after{content:"";position:absolute;right:-45px;bottom:-70px;width:150px;height:150px;border-radius:50%;border:1px solid rgba(255,214,107,.16);box-shadow:0 0 45px rgba(32,241,255,.08)}
+.trip-command-hero h3{margin:4px 0 2px;font-size:19px}
+.trip-command-hero p{margin:0;color:#9ba8d0;font-size:9px}
+.trip-mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;position:relative;z-index:1}
+.trip-mini-stats div{min-width:60px;padding:8px 7px;text-align:center;border-radius:13px;border:1px solid rgba(73,224,255,.13);background:rgba(255,255,255,.035)}
+.trip-mini-stats b{display:block;font-size:12px}.trip-mini-stats small{display:block;margin-top:3px;color:#8390b7;font-size:7px;letter-spacing:.8px}
+.journey-pulse-card{border-color:rgba(73,224,255,.16);background:linear-gradient(145deg,rgba(10,24,59,.94),rgba(5,9,27,.98))}
+.trip-command-grid{gap:8px}
+.trip-command{transition:transform .2s ease,border-color .2s ease}.trip-command:hover{transform:translateY(-2px);border-color:rgba(73,224,255,.28)}
+@media(max-width:650px){
+ .trip-command-hero{display:block;padding:14px;border-radius:18px}
+ .trip-command-hero h3{font-size:16px}
+ .trip-mini-stats{margin-top:12px}
+ .trip-mini-stats div{min-width:0;padding:7px 5px}
+ .trip-mini-stats b{font-size:11px}
+ .trip-command-grid{grid-template-columns:1fr 1fr}
+ .trip-command{min-height:62px}
+}
+@media(max-width:390px){.trip-command-grid{grid-template-columns:1fr}.trip-mini-stats b{font-size:10px}}
