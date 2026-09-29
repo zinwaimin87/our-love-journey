@@ -81,7 +81,7 @@ function render(){
  if(!app)return;
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
  try{
-   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="calendar")calendar(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
+   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="expense")expensePage(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
    updateNextStopBar();
    checkReminders();
@@ -119,7 +119,7 @@ function homeSmartCards(){
  const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0,tc=tripCountdown(h.nextTrip);
  const tripSub=h.nextTrip?(tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m":"Planned"):"Plan your next journey";
  return `<div class="smart-home-grid home-dashboard">
-  <button class="smart-card card" data-page="calendar"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
+  <button class="smart-card card" data-page="anniversary"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
   <button class="smart-card card trip-countdown-card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p id="homeTripCountdown">${tripSub}</p></div><em>›</em></button><button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
   <button class="smart-card card" data-page="memories"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div><em>›</em></button>
   <button class="smart-card card" data-page="travel"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div><em>›</em></button>
