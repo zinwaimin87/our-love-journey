@@ -17,7 +17,7 @@ function normalizeData(raw){
   }));
   d.activeTripId=d.trips.some(t=>t.id===d.activeTripId)?d.activeTripId:null;
   d.memories=Array.isArray(d.memories)?d.memories:[];
-  d.specialDays=Array.isArray(d.specialDays)?d.specialDays:[];
+  d.specialDays=Array.isArray(d.specialDays)?d.specialDays.map(x=>({...x,tripId:x?.tripId||""})):[];
   return d;
 }
 function load(){
@@ -75,8 +75,8 @@ function daysUntil(d){
   return Math.max(0,Math.ceil((b-a)/86400000));
 }
 function specialDayCard(x){
-  const next=nextOccurrence(x.date);
-  return `<article class="special-card card"><div class="special-icon">${x.type==="Birthday"?"🎂":x.type==="Anniversary"?"♡":x.type==="First Trip"?"✈":x.type==="First Date"?"☕":x.type==="First Meet"?"✨":"★"}</div><div class="special-main"><span class="badge">${esc(x.type)}</span><h3>${esc(x.title)}</h3><p>${esc(x.date)}${x.note?" · "+esc(x.note):""}</p></div><div class="special-count"><b>${daysUntil(next)}</b><small>days</small></div><div class="special-actions"><button class="mini-btn" data-edit-special="${x.id}">Edit</button><button class="mini-btn danger-text" data-delete-special="${x.id}">Delete</button></div></article>`;
+  const next=nextOccurrence(x.date),trip=x.tripId?db.trips.find(t=>String(t.id)===String(x.tripId)):null;
+  return `<article class="special-card card"><div class="special-icon">${x.type==="Birthday"?"🎂":x.type==="Anniversary"?"♡":x.type==="First Trip"?"✈":x.type==="First Date"?"☕":x.type==="First Meet"?"✨":"★"}</div><div class="special-main"><span class="badge">${esc(x.type)}</span><h3>${esc(x.title)}</h3><p>${esc(x.date)}${x.note?" · "+esc(x.note):""}</p>${trip?`<small class="calendar-trip-link">✈ ${esc(trip.name)}</small>`:""}</div><div class="special-count"><b>${daysUntil(next)}</b><small>days</small></div><div class="special-actions">${trip?`<button class="mini-btn" data-open-related-trip="${trip.id}">Trip</button>`:""}<button class="mini-btn" data-edit-special="${x.id}">Edit</button><button class="mini-btn danger-text" data-delete-special="${x.id}">Delete</button></div></article>`;
 }
 function calendar(a){
  const list=(db.specialDays||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date)));
@@ -228,7 +228,7 @@ function settings(a){
 function today(){return new Date().toISOString().slice(0,10)}
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function resizeImage(file,max){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL("image/jpeg",.78))};img.onerror=reject;img.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
-function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>`<option>${o}</option>`).join("")}</select></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}
+function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>{const v=typeof o==="object"?o.value:o;const l=typeof o==="object"?o.label:o;return `<option value="${esc(v)}">${esc(l)}</option>`}).join("")}</select></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}
 document.addEventListener("click",e=>{
  const mf=e.target.closest("[data-memory-filter]");if(mf){document.querySelectorAll("[data-memory-filter]").forEach(x=>x.classList.remove("active"));mf.classList.add("active");const type=mf.dataset.memoryFilter;document.querySelectorAll("[data-favorite-card]").forEach(x=>x.style.display=(type==="favorite"&&x.dataset.favoriteCard!=="1")?"none":"");return}
  const fav=e.target.closest("[data-memory-favorite]");if(fav){const m=db.memories.find(x=>x.id===fav.dataset.memoryFavorite);if(m){m.favorite=!m.favorite;save();render()};return}
@@ -241,15 +241,18 @@ document.addEventListener("click",e=>{
   {id:"title",label:"Title",type:"text",value:s.title},
   {id:"type",label:"Type",type:"select",options:["Anniversary","Birthday","First Meet","First Date","First Trip","Custom"]},
   {id:"date",label:"Date",type:"date",value:s.date||today()},
+  {id:"tripId",label:"Related Trip",type:"select",options:[{value:"",label:"No related trip"},...db.trips.map(t=>({value:String(t.id),label:t.name}))]},
   {id:"note",label:"Note",type:"text",value:s.note||"",placeholder:"Optional note"}
- ],vals=>{if(!vals.title.trim())return toast("Title is required");s.title=vals.title.trim();s.type=vals.type;s.date=vals.date;s.note=vals.note.trim();save();render();toast("Special day updated")});const sel=document.getElementById("mf_type");if(sel)sel.value=s.type||"Custom";return}
+ ],vals=>{if(!vals.title.trim())return toast("Title is required");s.title=vals.title.trim();s.type=vals.type;s.date=vals.date;s.tripId=vals.tripId;s.note=vals.note.trim();save();render();toast("Special day updated")});const sel=document.getElementById("mf_type");if(sel)sel.value=s.type||"Custom";const tripSel=document.getElementById("mf_tripId");if(tripSel)tripSel.value=s.tripId||"";return}
  if(e.target.id==="addSpecial"){openFormModal("Add Special Day",[
   {id:"title",label:"Title",type:"text",placeholder:"e.g. Our First Date"},
   {id:"type",label:"Type",type:"select",options:["Anniversary","Birthday","First Meet","First Date","First Trip","Custom"]},
   {id:"date",label:"Date",type:"date",value:today()},
+  {id:"tripId",label:"Related Trip",type:"select",options:[{value:"",label:"No related trip"},...db.trips.map(t=>({value:String(t.id),label:t.name}))]},
   {id:"note",label:"Note",type:"text",placeholder:"Optional note"}
- ],vals=>{if(!vals.title.trim())return toast("Title is required");db.specialDays.push({id:uid(),title:vals.title.trim(),type:vals.type,date:vals.date,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Special day saved")});return}
+ ],vals=>{if(!vals.title.trim())return toast("Title is required");db.specialDays.push({id:uid(),title:vals.title.trim(),type:vals.type,date:vals.date,tripId:vals.tripId,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Special day saved")});return}
 
+ const relatedTrip=e.target.closest("[data-open-related-trip]");if(relatedTrip){const trip=db.trips.find(t=>String(t.id)===String(relatedTrip.dataset.openRelatedTrip));if(!trip)return;db.activeTripId=trip.id;save();go(trip.finished?"history":"travel");return}
  const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
  if(e.target.id==="backHistory"){db.activeTripId=null;save();render();return}
  const editHistory=e.target.closest("[data-edit-history-trip]");
