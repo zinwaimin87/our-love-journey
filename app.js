@@ -164,7 +164,7 @@ function render(){
    try{setup3D();updateNextStopBar()}catch{}
  }
 }
-function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
+function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div><div id="nextStopBar" aria-live="polite"></div>`}
 function tripCountdown(t){
  if(!t?.startDate)return null;
  const start=new Date(t.startDate+"T00:00:00");
