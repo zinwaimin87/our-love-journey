@@ -301,3 +301,19 @@ body{min-width:0;overflow-x:hidden}
   .route-leg .leg-main{grid-column:2;grid-row:1}
   .route-leg .leg-index{grid-column:1;grid-row:1}
 }
+
+/* === HISTORY DETAIL === */
+.trip-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.history-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.history-summary>div{padding:12px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
+.history-summary small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.2px}
+.history-summary strong{display:block;margin-top:5px;font-size:17px}
+.history-detail-actions{justify-content:flex-end}
+.history-timeline .route-leg{margin-top:6px}
+@media(max-width:820px){
+ .trip-detail-head{flex-direction:column}
+ .trip-detail-head .btn{width:100%}
+ .history-summary{grid-template-columns:repeat(2,1fr)}
+ .history-detail-actions{display:grid;grid-template-columns:1fr 1fr}
+ .history-detail-actions .btn{width:100%}
+}
