@@ -122,7 +122,7 @@ function travel(a){
  a.innerHTML=shellHead("Traveling","Plan routes, mark places as reached and keep every expense with the trip.")+
  (active?tripDetail(active):`<div class="card panel"><div class="form-grid"><div class="field"><label>Trip name</label><input id="tripName" placeholder="e.g. Weekend Escape"></div><div class="field"><label>Destination</label><input id="dest" placeholder="Where are you going?"></div><div class="field"><label>Start date</label><input id="sd" type="date"></div><div class="field"><label>End date</label><input id="ed" type="date"></div><div class="field"><label>Trip Budget (THB)</label><input id="tripBudget" type="number" min="0" step="0.01" placeholder="e.g. 10000"></div></div><div class="actions"><button class="btn" id="createTrip">Create Trip</button></div></div>${db.trips.filter(t=>!t.finished).length?'<div class="section-title"><h2>Saved Trips</h2></div>'+db.trips.filter(t=>!t.finished).slice().reverse().map(tripMini).join(""):''}`);
 }
-function tripMini(t){const spent=total(t),budget=Number(t.budget||0),left=budget-spent;return `<div class="card trip-card" style="margin-bottom:12px"><div><span class="badge">${t.finished?"Finished":"Saved"}</span><h3>${esc(t.name)}</h3><p>${esc(t.destination||"")} · ${t.stops.length} stops · ฿${money(spent)}${budget?` / ฿${money(budget)}`:""}</p>${budget?`<div class="budget-mini ${left<0?"over":""}"><span style="width:${Math.min(100,Math.max(0,spent/budget*100))}%"></span></div>`:""}</div><button class="btn secondary" data-open-trip="${t.id}">Open</button></div>`}
+function tripMini(t){const spent=total(t),budget=Number(t.budget||0),left=budget-spent;return `<div class="card trip-card" style="margin-bottom:12px"><div><span class="badge">${t.finished?"Finished":"Saved"}</span><h3>${esc(t.name)}</h3><p>${esc(t.destination||"")} · ${t.stops.length} stops · ฿${money(spent)}${budget?` / ฿${money(budget)}`:""}</p>${budget?`<div class="budget-mini ${left<0?"over":""}"><span style="width:${Math.min(100,Math.max(0,spent/budget*100))}%"></span></div>`:""}</div><div class="actions history-trip-actions"><button class="btn secondary" data-open-trip="${t.id}">Open</button>${t.finished?`<button class="btn secondary" data-edit-history-trip="${t.id}">Edit</button><button class="btn danger" data-delete-history-trip="${t.id}">Delete</button>`:""}</div></div>`}
 function routeTransportTotal(s){return (s.legs||[]).reduce((n,l)=>n+Number(l.price||0),0)}
 function routeTransportAll(t){return t.stops.reduce((n,s)=>n+routeTransportTotal(s),0)}
 function tripDetail(t){
@@ -182,6 +182,33 @@ document.addEventListener("click",e=>{
  ],vals=>{if(!vals.title.trim())return toast("Title is required");db.specialDays.push({id:uid(),title:vals.title.trim(),type:vals.type,date:vals.date,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Special day saved")});return}
 
  const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
+ const editHistory=e.target.closest("[data-edit-history-trip]");
+ if(editHistory){
+  const t=db.trips.find(x=>String(x.id)===String(editHistory.dataset.editHistoryTrip));if(!t)return;
+  openFormModal("Edit Finished Trip",[
+   {id:"tripName",label:"Trip name",type:"text",value:t.name},
+   {id:"dest",label:"Destination",type:"text",value:t.destination||""},
+   {id:"sd",label:"Start date",type:"date",value:t.startDate||""},
+   {id:"ed",label:"End date",type:"date",value:t.endDate||""},
+   {id:"budget",label:"Trip Budget (THB)",type:"number",value:String(t.budget||0)}
+  ],vals=>{
+   if(!vals.tripName.trim())return toast("Trip name is required");
+   const budget=Number(vals.budget);if(budget<0||Number.isNaN(budget))return toast("Enter a valid budget");
+   t.name=vals.tripName.trim();t.destination=vals.dest.trim();t.startDate=vals.sd;t.endDate=vals.ed;t.budget=budget;
+   save();render();toast("Finished trip updated");
+  });
+  return;
+ }
+ const deleteHistory=e.target.closest("[data-delete-history-trip]");
+ if(deleteHistory){
+  const tripId=deleteHistory.dataset.deleteHistoryTrip;
+  const t=db.trips.find(x=>String(x.id)===String(tripId));if(!t)return;
+  if(confirm("Delete this finished trip and all its routes, transport steps, expenses and memories?")){
+   db.trips=db.trips.filter(x=>String(x.id)!==String(tripId));
+   save();render();toast("Finished trip deleted");
+  }
+  return;
+ }
  const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go("travel");return}
  const delLeg=e.target.closest("[data-delete-leg]");
  if(delLeg){const t=db.trips.find(x=>x.id===db.activeTripId),s=t?.stops.find(x=>x.id===delLeg.dataset.deleteLeg);if(s){s.legs=(s.legs||[]).filter(l=>String(l.id)!==String(delLeg.dataset.legId));save();render();toast("Transport step deleted")}return}
