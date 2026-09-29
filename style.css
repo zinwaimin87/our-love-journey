@@ -801,3 +801,9 @@ body{min-width:0;overflow-x:hidden}
  .next-stop-visual{grid-template-columns:65px minmax(0,1fr) 65px;min-height:120px}
  .route-center strong{font-size:16px}.route-photo b{font-size:8px}
 }
+
+/* Hard-hide legacy top branding so only Next Stop can occupy the header */
+.topbar .brand,.next-only-header .brand{display:none!important}
+.next-only-header{display:block!important;margin:0!important}
+.next-only-header .next-stop-bar{display:block}
+.next-only-header .next-stop-bar:not(.has-next-stop){display:none!important}
