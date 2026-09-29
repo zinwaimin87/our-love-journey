@@ -1400,5 +1400,6 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{overflow-x:hidden;-webkit-tap
  .ns3-node b{font-size:5.8px}
 }
 
+.journey-reach-btn,.journey-complete-btn{margin-top:10px!important;min-height:40px!important;padding:0 14px!important;font-weight:900!important}.journey-reach-btn{border-color:rgba(78,226,255,.5)!important;background:linear-gradient(135deg,rgba(29,198,230,.18),rgba(92,90,255,.24))!important}.journey-complete-btn{border-color:rgba(255,196,79,.55)!important;background:rgba(255,196,79,.12)!important}
 /* Clear route stop actions */
 .stop-action-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px;padding-top:2px}.stop-reach-btn,.stop-complete-btn{min-height:44px!important;padding:0 18px!important;font-weight:900!important}.stop-reach-btn{border-color:rgba(78,226,255,.5)!important;background:linear-gradient(135deg,rgba(29,198,230,.22),rgba(92,90,255,.28))!important}.stop-complete-btn{border-color:rgba(255,196,79,.55)!important}.completed-note{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:14px;color:#8ff7d5;background:rgba(38,210,157,.12);border:1px solid rgba(38,210,157,.25);font-weight:900}
