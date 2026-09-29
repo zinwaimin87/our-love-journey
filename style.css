@@ -737,3 +737,67 @@ body{min-width:0;overflow-x:hidden}
  .ns-map{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){.next-stop-3d,.next-stop-3d:before{animation:none!important}}
+
+/* ===== Screenshot-inspired Home UI ===== */
+.hero-card{position:relative;overflow:hidden;padding:24px 28px!important}
+.hero-card:after{content:"";position:absolute;right:18px;bottom:8px;width:110px;height:80px;background:radial-gradient(circle at 70% 55%,rgba(255,60,196,.34),transparent 36%),radial-gradient(circle at 45% 70%,rgba(255,70,180,.18),transparent 48%);filter:blur(2px);pointer-events:none}
+.hero-heart{position:absolute;right:28px;bottom:10px;color:#ff4fc3;font-size:46px;opacity:.7;transform:rotate(-10deg);text-shadow:0 0 22px rgba(255,60,200,.6);animation:heartFloat 3s ease-in-out infinite}
+@keyframes heartFloat{50%{transform:translateY(-5px) rotate(4deg) scale(1.04)}}
+.home-dashboard .smart-card{position:relative;display:flex!important;text-align:left!important;align-items:center!important;min-height:94px;padding:14px 16px!important;cursor:pointer;color:inherit;width:100%;border:1px solid rgba(71,206,255,.22)}
+.home-dashboard .smart-card>span{flex:0 0 48px;width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-size:23px;background:linear-gradient(145deg,rgba(24,210,255,.16),rgba(117,88,255,.18));box-shadow:inset 0 0 16px rgba(68,221,255,.08)}
+.home-dashboard .smart-card>div{min-width:0;flex:1}
+.home-dashboard .smart-card small{display:block;font-size:8px;letter-spacing:1.4px;line-height:1.25}
+.home-dashboard .smart-card b{display:block;font-size:14px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-dashboard .smart-card p{margin:3px 0 0;font-size:9px}
+.home-dashboard .smart-card em{font-style:normal;font-size:28px;color:#8298c7;line-height:1}
+.home-dashboard .smart-card:nth-child(1)>span{color:#ff62cb}.home-dashboard .smart-card:nth-child(2)>span{color:#44e8ff}.home-dashboard .smart-card:nth-child(3)>span{color:#ff6c83}.home-dashboard .smart-card:nth-child(4)>span{color:#ffd26a}.home-dashboard .smart-card:nth-child(5)>span{color:#32eaff}.home-dashboard .smart-card:nth-child(6)>span{color:#4eefff}
+.home-trip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.home-trip-card{overflow:hidden;padding:0!important;cursor:pointer}
+.home-trip-image{height:116px;position:relative;background:linear-gradient(135deg,#0a294a,#126b86 50%,#37235f);background-size:cover;background-position:center}
+.home-trip-image:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(2,7,25,.7))}
+.home-trip-badge{position:absolute;left:10px;bottom:9px;z-index:2;padding:4px 8px;border-radius:999px;font-size:8px;background:rgba(4,11,30,.65);border:1px solid rgba(107,228,255,.25)}
+.trip-more{position:absolute;right:8px;top:8px;z-index:2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(4,9,25,.65);font-size:19px}
+.home-trip-info{padding:10px 12px}.home-trip-info b{display:block;font-size:13px}.home-trip-info small{display:block;margin-top:4px;font-size:9px;color:var(--muted)}
+/* Route hero */
+.next-stop-visual{position:relative;display:grid;grid-template-columns:minmax(95px,.78fr) minmax(220px,1.5fr) minmax(95px,.78fr);align-items:stretch;gap:7px;min-height:154px;padding:7px;border-radius:22px;overflow:hidden;background:linear-gradient(110deg,#063e78 0%,#075a91 30%,#3a1c75 72%,#7c1a86 100%);border:1px solid rgba(90,239,255,.55);box-shadow:0 0 28px rgba(30,221,255,.2),0 0 40px rgba(219,67,255,.12),inset 0 0 28px rgba(255,255,255,.05);transform-style:preserve-3d;animation:routeFloat 4s ease-in-out infinite}
+.next-stop-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(0,222,255,.15),transparent 42%,rgba(255,79,215,.2));pointer-events:none}
+.route-photo{position:relative;min-width:0;border-radius:17px;overflow:hidden;background:linear-gradient(155deg,#1677a4 0%,#0b315f 46%,#61227c 100%);background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:8px}
+.route-photo:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 55% 35%,rgba(255,255,255,.2),transparent 25%),linear-gradient(180deg,rgba(0,0,0,.02) 35%,rgba(3,8,29,.72))}
+.route-photo>div{position:relative;z-index:2;width:100%;padding:7px 8px;border-radius:11px;background:rgba(4,14,38,.7);border:1px solid rgba(91,231,255,.28);backdrop-filter:blur(5px)}
+.route-photo small{display:block;color:#67f1ff;font-size:7px;letter-spacing:1.5px;font-weight:900}
+.route-photo b{display:block;color:#fff;font-size:13px;margin-top:2px}
+.photo-pin{position:absolute;z-index:3;top:8px;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50% 50% 50% 0;rotate:-45deg;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#18dcff,#5c65ff);box-shadow:0 0 15px rgba(30,226,255,.65)}
+.photo-pin::first-letter{rotate:45deg}
+.next-photo .photo-pin{background:linear-gradient(135deg,#ff64db,#9d49ff);box-shadow:0 0 16px rgba(255,77,211,.65)}
+.route-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:7px;min-width:0}
+.route-label{font-size:8px;letter-spacing:3px;font-weight:900;color:#79f2ff}
+.route-line{display:flex;align-items:center;gap:8px;color:#5eeeff;font-size:18px;margin:3px 0}
+.route-line b{font-size:11px;padding:5px 10px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#f4b63d,#ff6b32);box-shadow:0 0 15px rgba(255,157,56,.35)}
+.route-center strong{font-size:25px;line-height:1;color:#fff;text-shadow:0 0 18px rgba(113,229,255,.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.route-center p{margin:6px 0 4px;color:#dbe8ff;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.route-meta{font-size:8px;color:#d6e1ff;opacity:.9}
+.next-stop-visual .ns-map{position:absolute!important;right:8px!important;top:8px!important;z-index:5;width:27px!important;height:27px!important;min-height:27px!important;display:grid!important;place-items:center!important;padding:0!important;border-radius:50%!important;background:rgba(3,10,28,.58)!important}
+@keyframes routeFloat{50%{transform:translateY(-2px) rotateX(.4deg)}}
+@media(max-width:720px){
+ .hero-card{padding:19px 15px!important}
+ .hero-heart{right:13px;bottom:8px;font-size:36px}
+ .home-dashboard .smart-card{min-height:82px;padding:11px!important}
+ .home-dashboard .smart-card>span{width:40px;height:40px;flex-basis:40px;border-radius:14px;font-size:19px}
+ .home-dashboard .smart-card b{font-size:12px}
+ .home-trip-grid{gap:9px}
+ .home-trip-image{height:98px}
+ .next-stop-visual{min-height:132px;grid-template-columns:78px minmax(0,1fr) 78px;border-radius:18px;padding:5px}
+ .route-photo{border-radius:13px;padding:5px}
+ .route-photo>div{padding:5px}.route-photo small{font-size:5px}.route-photo b{font-size:9px}
+ .route-center{padding:4px}
+ .route-label{font-size:6px;letter-spacing:2px}
+ .route-line{font-size:14px;gap:4px}.route-line b{font-size:8px;padding:4px 7px}
+ .route-center strong{font-size:18px}
+ .route-center p{font-size:7px;margin:4px 0}
+ .route-meta{font-size:6px}
+ .photo-pin{width:21px;height:21px}
+}
+@media(max-width:390px){
+ .next-stop-visual{grid-template-columns:65px minmax(0,1fr) 65px;min-height:120px}
+ .route-center strong{font-size:16px}.route-photo b{font-size:8px}
+}
