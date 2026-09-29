@@ -52,20 +52,25 @@ function transportLabel(mode){return mode||"Route";}
 function updateNextStopBar(){
  const el=document.getElementById("nextStopBar"); if(!el)return;
  const t=db.trips.find(x=>x.id===db.activeTripId&&!x.finished);
- const stops=t?.stops||[],next=stops.find(s=>!s.reached);
- // Show the top bar only when there is an active trip with an actual next route stop.
+ const stops=t?.stops||[],next=stops.find(x=>!x.reached);
  if(!t||!next){el.innerHTML="";el.classList.remove("has-next-stop");return}
  el.classList.add("has-next-stop");
- const reached=stops.filter(s=>s.reached),current=reached.length?reached[reached.length-1]:null;
+ const reached=stops.filter(x=>x.reached),current=reached.length?reached[reached.length-1]:null;
  const mode=String(next.transportMode||"");
  const leg=(next.legs||[])[0];
  const from=leg?.from||(current?.name||t.destination||"Current");
  const to=leg?.to||next.name;
  const icon=transportIcon(mode),label=transportLabel(mode);
- const isTrain=["train","bts","mrt"].includes(mode.toLowerCase());
- const routeText=isTrain?("Board · "+from+"  →  Get off · "+to):("Route · "+from+"  →  "+to);
+ const isTransit=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase());
+ const routeLabel=isTransit?"BOARD / GET OFF":"ROUTE";
+ const routeText=isTransit?("Board · "+from+"  →  Get off · "+to):(from+"  →  "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
- el.innerHTML='<div class="next-stop-inner"><span class="ns-orb ns-vehicle">'+icon+'</span><div class="ns-route"><small>3D NEXT STOP · '+esc(label)+'</small><b>'+esc(next.name)+'</b><i>'+esc(routeText)+(timing?" · "+timing:"")+'</i></div><a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">Route ↗</a></div>';
+ el.innerHTML='<div class="next-stop-3d">'+
+   '<div class="ns-side ns-current"><span class="ns-side-label">CURRENT</span><b>'+esc(from)+'</b></div>'+
+   '<div class="ns-core"><div class="ns-core-top"><span class="ns-orb ns-vehicle">'+icon+'</span><span class="ns-label">3D NEXT STOP · '+esc(label)+'</span></div><strong>'+esc(to)+'</strong><span class="ns-route-text">'+routeLabel+' · '+esc(routeText)+'</span><span class="ns-time">'+timing+'</span></div>'+
+   '<div class="ns-side ns-next"><span class="ns-side-label">NEXT STOP</span><b>'+esc(next.name)+'</b></div>'+
+   '<a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">↗</a>'+
+ '</div>';
 }
 function render(){
  const p=pageName(),app=document.getElementById("app");
