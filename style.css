@@ -1366,3 +1366,35 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{overflow-x:hidden;-webkit-tap
     white-space:nowrap!important;
   }
 }
+
+/* ===== Next Stop V5 — route segment header ===== */
+.ns3-destination{display:flex!important;align-items:center;gap:10px!important;min-width:0;margin-top:5px!important;font-size:22px!important}
+.ns3-destination strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ns3-destination span{flex:0 0 auto;color:#38eaff;font-size:24px;font-weight:900;text-shadow:0 0 14px rgba(55,232,255,.7)}
+.ns3-track{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-top:8px;padding:0 3px}
+.ns3-track:before{content:"";position:absolute;left:4px;right:4px;top:4px;height:2px;border-radius:99px;background:linear-gradient(90deg,rgba(54,230,255,.55),rgba(255,255,255,.12));z-index:0}
+.ns3-node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;min-width:0;flex:1}
+.ns3-node i{display:block;width:8px;height:8px;border-radius:50%;background:#1b2d62;border:2px solid rgba(122,233,255,.55);box-sizing:border-box;box-shadow:0 0 0 2px rgba(5,18,50,.7)}
+.ns3-node b{display:block;max-width:100%;margin-top:5px;color:rgba(226,239,255,.68);font-size:7px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ns3-node.done i{background:#39e7ff;border-color:#72f2ff;box-shadow:0 0 9px rgba(57,231,255,.7)}
+.ns3-node.done b{color:#aef7ff}
+.ns3-node.current i{background:#ffd15a;border-color:#fff0a4;box-shadow:0 0 12px rgba(255,209,90,.75)}
+.ns3-node.current b{color:#fff}
+.ns3-node.next i{background:#101e4e;border-color:#48eaff;box-shadow:0 0 13px rgba(72,234,255,.7);transform:scale(1.18)}
+.ns3-node.next b{color:#fff;font-weight:900}
+.ns3-node.pending i{opacity:.7}
+.ns3-node.pending b{opacity:.58}
+@media(max-width:600px){
+ .next-stop-v3{min-height:126px!important;padding:11px 49px 14px 13px!important}
+ .ns3-destination{font-size:20px!important;gap:7px!important}
+ .ns3-destination span{font-size:20px}
+ .ns3-route{margin-top:5px!important}
+ .ns3-track{margin-top:7px!important}
+ .ns3-node b{font-size:6.5px}
+}
+@media(max-width:390px){
+ .next-stop-v3{min-height:119px!important}
+ .ns3-destination{font-size:17px!important;gap:5px!important}
+ .ns3-destination span{font-size:17px}
+ .ns3-node b{font-size:5.8px}
+}
