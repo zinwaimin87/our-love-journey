@@ -467,6 +467,11 @@ function history(a){
  const detail=db.activeTripId?db.trips.find(t=>t.id===db.activeTripId&&t.finished):null;
  if(detail){a.innerHTML=shellHead("Journey Detail","Completed trip summary, route and spending.")+finishedTripDetail(detail);return}
  a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+(done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`);
+ a.querySelectorAll("[data-open-history-trip]").forEach(btn=>btn.addEventListener("click",()=>{
+  const trip=db.trips.find(t=>String(t.id)===String(btn.dataset.openHistoryTrip));
+  if(!trip)return;
+  db.activeTripId=trip.id;save();location.hash="history";
+ }));
 }
 function finishedTripDetail(t){
  const cats=categorySummary(t), routeCount=t.stops.length, reached=t.stops.filter(s=>s.reached).length, spent=total(t);
