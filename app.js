@@ -121,11 +121,9 @@ function updateNextStopBar(){
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
  const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round((idx/stops.length)*100):0;
  el.innerHTML='<div class="next-stop-header" data-page="travel">'+
-   '<div class="ns-head-top"><span class="ns-head-label"><span class="ns-head-pin">📍</span>NEXT STOP</span><a class="ns-head-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a></div>'+
-   '<div class="ns-head-vehicle">'+icon+' '+esc(label)+'</div>'+
-   '<strong class="ns-head-destination">'+esc(to)+'</strong>'+
-   '<div class="ns-head-route">'+esc(from)+' → '+esc(to)+'</div>'+
-   '<div class="ns-head-meta"><span>STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</span><span>'+timing+'</span></div>'+
+   '<div class="ns-upnext"><span class="ns-head-pin">📍</span><div><small>UP NEXT</small><strong>'+esc(to)+'</strong></div></div>'+
+   '<div class="ns-trip-info"><span class="ns-head-vehicle">'+icon+' '+esc(label)+'</span><span class="ns-head-route">'+esc(from)+' → '+esc(to)+'</span><span class="ns-head-meta">STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+(timing?" · "+timing:"")+'</span></div>'+
+   '<a class="ns-head-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
    '<i class="ns-head-progress"><em style="width:'+Math.max(6,progress)+'%"></em></i>'+
  '</div>';
 }
