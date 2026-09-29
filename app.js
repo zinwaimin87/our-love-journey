@@ -169,7 +169,7 @@ function calendar(a){
 function expensePage(a){
  const now=new Date(), ym0=String(now.getFullYear())+"-"+String(now.getMonth()+1).padStart(2,"0");
  const months=[...new Set((db.trips||[]).flatMap(t=>[t.startDate,t.endDate,...(t.expenses||[]).map(e=>e.date),...(t.stops||[]).map(s=>s.date)]).filter(Boolean).map(x=>String(x).slice(0,7)))].sort().reverse();
- const ym=months.includes(ym0)?ym0:(months[0]||ym0);
+ const savedYm=window.__expenseMonth; const ym=savedYm&&months.includes(savedYm)?savedYm:(months.includes(ym0)?ym0:(months[0]||ym0));
  const [yy,mm]=ym.split("-").map(Number), monthStart=new Date(yy,mm-1,1), nextMonth=new Date(yy,mm,1);
  const inMonth=d=>{if(!d)return false;const x=new Date(String(d).slice(0,10)+"T00:00:00");return !isNaN(x)&&x>=monthStart&&x<nextMonth};
  const monthTrips=(db.trips||[]).filter(t=>{const s=t.startDate?new Date(t.startDate+"T00:00:00"):null,e=t.endDate?new Date(t.endDate+"T23:59:59"):s;return (s&&e)&&s<nextMonth&&e>=monthStart});
