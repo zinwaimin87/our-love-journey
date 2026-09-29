@@ -87,9 +87,23 @@ function render(){
  }
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
+function tripCountdown(t){
+ if(!t?.startDate)return null;
+ const start=new Date(t.startDate+"T00:00:00");
+ if(isNaN(start))return null;
+ const diff=start-Date.now();
+ if(diff<=0)return {started:true,days:0,hours:0,minutes:0,seconds:0};
+ const days=Math.floor(diff/86400000),hours=Math.floor(diff%86400000/3600000),minutes=Math.floor(diff%3600000/60000),seconds=Math.floor(diff%60000/1000);
+ return {started:false,days,hours,minutes,seconds};
+}
 function homeUpcoming(){
  const active=db.trips.find(t=>t.id===db.activeTripId&&!t.finished);
- const upcomingTrips=(db.trips||[]).filter(t=>!t.finished&&t.startDate).sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+ const nowDay=new Date();nowDay.setHours(0,0,0,0);
+ const upcomingTrips=(db.trips||[]).filter(t=>!t.finished&&t.startDate).sort((a,b)=>{
+   const ad=new Date(a.startDate+"T00:00:00"),bd=new Date(b.startDate+"T00:00:00");
+   const av=isNaN(ad)?Infinity:Math.abs(ad-nowDay),bv=isNaN(bd)?Infinity:Math.abs(bd-nowDay);
+   return av-bv;
+ });
  const nextTrip=upcomingTrips[0]||null;
  const ann=db.profile.startDate?nextOccurrence(db.profile.startDate):null;
  const nextStop=active?(active.stops||[]).find(s=>!s.reached):null;
@@ -98,11 +112,11 @@ function homeUpcoming(){
  return {active,nextTrip,ann,nextStop,memoryCount,spend};
 }
 function homeSmartCards(){
- const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0;
+ const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0,tc=tripCountdown(h.nextTrip);
+ const tripSub=h.nextTrip?(tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m":"Planned"):"Plan your next journey";
  return `<div class="smart-home-grid home-dashboard">
   <button class="smart-card card" data-page="calendar"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
-  <button class="smart-card card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p>${h.nextTrip?h.nextTrip.startDate:"Plan your next journey"}</p></div><em>›</em></button>
-  <button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
+  <button class="smart-card card trip-countdown-card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p id="homeTripCountdown">${tripSub}</p></div><em>›</em></button><button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
   <button class="smart-card card" data-page="memories"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div><em>›</em></button>
   <button class="smart-card card" data-page="travel"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div><em>›</em></button>
   <button class="smart-card card" data-page="travel"><span>◈</span><div><small>CURRENT TRIP PROGRESS</small><b>${h.active?progress+"%":"No active trip"}</b><p>${h.active?(h.active.stops||[]).filter(s=>s.reached).length+" / "+(h.active.stops||[]).length+" stops reached":"Open Travel to start"}</p></div><em>›</em></button>
@@ -466,3 +480,4 @@ document.addEventListener("click",e=>{
  if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=null;save();go("history");toast("Journey archived")}}
 });
 window.addEventListener("hashchange",render);render();
+ const refreshTripCountdown=()=>{const h=homeUpcoming(),el=document.getElementById("homeTripCountdown");if(!el)return;const tc=tripCountdown(h.nextTrip);el.textContent=!h.nextTrip?"Plan your next journey":tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m "+tc.seconds+"s":"Planned"};clearInterval(window.__homeTripTimer);refreshTripCountdown();window.__homeTripTimer=setInterval(refreshTripCountdown,1000);
