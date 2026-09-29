@@ -118,16 +118,15 @@ function updateNextStopBar(){
  const from=leg?.from||(current?.name||t.destination||"Current");
  const to=leg?.to||next.name;
  const icon=transportIcon(mode),label=transportLabel(mode);
- const isTransit=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase());
- const routeText=isTransit?("Board · "+from+" → Get off · "+to):(from+" → "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
- const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round(((idx)/stops.length)*100):0;
- el.innerHTML='<div class="next-stop-live next-stop-premium" data-page="travel">'+
-   '<div class="ns-live-icon ns-premium-icon">'+icon+'</div>'+
-   '<div class="ns-live-main"><div class="ns-live-kicker"><span>LIVE JOURNEY</span><b>NEXT STOP</b></div>'+
-   '<strong>'+esc(to)+'</strong><small>'+esc(label)+' · STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+(timing?" · "+timing:"")+'</small>'+
-   '<i><em style="width:'+Math.max(6,progress)+'%"></em></i></div>'+
-   '<a class="ns-live-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
+ const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round((idx/stops.length)*100):0;
+ el.innerHTML='<div class="next-stop-header" data-page="travel">'+
+   '<div class="ns-head-top"><span class="ns-head-label"><span class="ns-head-pin">📍</span>NEXT STOP</span><a class="ns-head-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a></div>'+
+   '<div class="ns-head-vehicle">'+icon+' '+esc(label)+'</div>'+
+   '<strong class="ns-head-destination">'+esc(to)+'</strong>'+
+   '<div class="ns-head-route">'+esc(from)+' → '+esc(to)+'</div>'+
+   '<div class="ns-head-meta"><span>STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</span><span>'+timing+'</span></div>'+
+   '<i class="ns-head-progress"><em style="width:'+Math.max(6,progress)+'%"></em></i>'+
  '</div>';
 }
 function render(){
