@@ -22,7 +22,7 @@
       '<div class="ns3-destination"><strong>'+esc2(to)+'</strong></div>'+
       '<div class="ns3-route"><span class="ns3-vehicle">'+icon2(mode)+' '+esc2(mode||"Route")+'</span><span class="ns3-state">'+planned+'</span></div>'+
       '<div class="ns3-track">'+nodes+'</div></div>'+
-      '<a class="ns3-map" href="'+maps2(from,to,mode)+'" target="_blank" rel="noopener noreferrer" aria-label="Open route">↗ <span>Open</span></a>'+
+      '<div class="ns3-actions"><a class="ns3-map" href="'+maps2(from,to,mode)+'" target="_blank" rel="noopener noreferrer" aria-label="Open route">↗ <span>Open</span></a><button class="ns3-reach" type="button" data-reach="'+next.id+'" aria-label="Mark '+esc2(to)+' reached">✓ Reached</button></div>'+
       '<div class="ns3-progress"><em style="width:'+Math.round(((i+1)/stops.length)*100)+'%"></em></div></div>';
   };
   // The original document click handler sees data-page on the parent card and prevents the link.
