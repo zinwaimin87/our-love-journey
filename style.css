@@ -868,3 +868,8 @@ body{min-width:0;overflow-x:hidden}
  .next-stop-center-only strong{font-size:21px}.next-stop-center-only p{font-size:7px;margin:4px 0 1px}.next-stop-center-only>small{font-size:6px}
  .next-stop-center-only .ns-map{right:7px!important;top:7px!important;width:23px!important;height:23px!important}
 }
+
+/* Live trip countdown */
+.trip-countdown-card p{color:#73eaff!important;font-weight:700;letter-spacing:.2px}
+.trip-countdown-card>span{animation:vehicleFloat 2.6s ease-in-out infinite}
+@media(max-width:720px){.trip-countdown-card p{font-size:8px}}
