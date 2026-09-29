@@ -39,6 +39,11 @@ function go(p){location.hash=p}
 function setup3D(){
  document.querySelectorAll(".card,.timebox,.btn").forEach(el=>{if(el.dataset.tilt)return;el.dataset.tilt="1";el.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(700px) rotateX(${(-y*4).toFixed(2)}deg) rotateY(${(x*5).toFixed(2)}deg) translateZ(2px)`});el.addEventListener("pointerleave",()=>{el.style.transform=""})})
 }
+function mapsDirectionsUrl(from,to,mode){
+ const f=encodeURIComponent(from||""),t=encodeURIComponent(to||"");
+ const travel=String(mode||"").toLowerCase()==="train"||String(mode||"").toLowerCase()==="bts"||String(mode||"").toLowerCase()==="mrt"||String(mode||"").toLowerCase()==="boat"?"transit":"driving";
+ return "https://www.google.com/maps/dir/?api=1&origin="+f+"&destination="+t+"&travelmode="+travel;
+}
 function transportIcon(mode){
  const m=String(mode||"").toLowerCase();
  return m==="car"?"🚗":m==="motorcycle"?"🏍️":m==="train"?"🚆":m==="boat"?"⛴️":m==="bus"?"🚌":m==="minivan"?"🚐":m==="taxi"?"🚕":m==="flight"?"✈️":m==="bts"?"🚇":m==="mrt"?"🚇":m==="walk"?"🚶":"➜";
@@ -50,10 +55,15 @@ function updateNextStopBar(){
  if(!t){el.innerHTML='<div class="next-stop-inner idle"><span class="ns-orb">✦</span><div><small>NEXT STOP</small><b>Start a journey to see your route</b></div></div>';return}
  const stops=t.stops||[],reached=stops.filter(s=>s.reached),next=stops.find(s=>!s.reached),current=reached.length?reached[reached.length-1]:null;
  if(!next){el.innerHTML='<div class="next-stop-inner complete"><span class="ns-orb">✓</span><div><small>JOURNEY COMPLETE</small><b>'+esc(current?.name||t.name)+'</b><i>All stops reached</i></div></div>';return}
- const currentText=current?'CURRENT · '+esc(current.name):'CURRENT · NOT STARTED';
- const timing=(next.date?esc(next.date):'Planned')+(next.time?' · '+esc(next.time):'');
- const mode=transportLabel(next.transportMode);
- el.innerHTML='<div class="next-stop-inner"><span class="ns-orb ns-vehicle">'+transportIcon(next.transportMode)+'</span><div class="ns-route"><small>'+currentText+'</small><b>Next Stop · '+esc(next.name)+'</b><i>'+transportIcon(next.transportMode)+' '+esc(mode)+(timing?' · '+timing:'')+'</i></div><span class="ns-arrow">→</span></div>';
+ const mode=String(next.transportMode||"");
+ const leg=(next.legs||[])[0];
+ const from=leg?.from||(current?.name||t.destination||"Current");
+ const to=leg?.to||next.name;
+ const icon=transportIcon(mode), label=transportLabel(mode);
+ const isTrain=["train","bts","mrt"].includes(mode.toLowerCase());
+ const routeText=isTrain?("Board · "+from+"  →  Get off · "+to):("Route · "+from+"  →  "+to);
+ const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
+ el.innerHTML='<div class="next-stop-inner"><span class="ns-orb ns-vehicle">'+icon+'</span><div class="ns-route"><small>3D NEXT STOP · '+esc(label)+'</small><b>'+esc(next.name)+'</b><i>'+esc(routeText)+(timing?" · "+timing:"")+'</i></div><a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">Route ↗</a></div>';
 }
 function render(){
  const p=pageName(),app=document.getElementById("app");
