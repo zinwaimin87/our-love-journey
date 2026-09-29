@@ -177,35 +177,24 @@ function calendar(a){
 function expensePage(a){
  const now=new Date(), ym0=String(now.getFullYear())+"-"+String(now.getMonth()+1).padStart(2,"0");
  const months=[...new Set((db.trips||[]).flatMap(t=>[t.startDate,t.endDate,...(t.expenses||[]).map(e=>e.date),...(t.stops||[]).map(s=>s.date)]).filter(Boolean).map(x=>String(x).slice(0,7)))].sort().reverse();
- const savedYm=window.__expenseMonth; const ym=savedYm&&months.includes(savedYm)?savedYm:(months.includes(ym0)?ym0:(months[0]||ym0));
+ const savedYm=window.__expenseMonth, ym=savedYm&&months.includes(savedYm)?savedYm:(months.includes(ym0)?ym0:(months[0]||ym0));
  const [yy,mm]=ym.split("-").map(Number), monthStart=new Date(yy,mm-1,1), nextMonth=new Date(yy,mm,1);
  const inMonth=d=>{if(!d)return false;const x=new Date(String(d).slice(0,10)+"T00:00:00");return !isNaN(x)&&x>=monthStart&&x<nextMonth};
- const monthTrips=(db.trips||[]).filter(t=>{const s=t.startDate?new Date(t.startDate+"T00:00:00"):null,e=t.endDate?new Date(t.endDate+"T23:59:59"):s;return (s&&e)&&s<nextMonth&&e>=monthStart});
- const daily={}; const cats={};
- const add=(date,cat,amount,trip)=>{const n=Number(amount||0);if(!date||n<=0)return;const day=String(date).slice(0,10);if(!inMonth(day))return;daily[day]=(daily[day]||0)+n;cats[cat]=(cats[cat]||0)+n;};
- monthTrips.forEach(t=>{
-   (t.expenses||[]).forEach(e=>add(e.date||t.startDate,e.category||"Other",e.amount,t));
-   (t.stops||[]).forEach(s=>{
-     add(s.date||t.startDate,"Activities / Stops",s.price,t);
-     (s.legs||[]).forEach(l=>add(s.date||t.startDate,"Transportation",l.price,t));
-   });
- });
- const totalMonth=Object.values(daily).reduce((n,v)=>n+v,0), days=Object.entries(daily).sort((a,b)=>a[0].localeCompare(b[0]));
- const catRows=Object.entries(cats).sort((a,b)=>b[1]-a[1]), maxCat=catRows[0]?.[1]||1;
+ const monthTrips=(db.trips||[]).filter(t=>{const st=t.startDate?new Date(t.startDate+"T00:00:00"):null,en=t.endDate?new Date(t.endDate+"T23:59:59"):st;return st&&en&&st<nextMonth&&en>=monthStart});
+ const daily={},cats={};
+ const add=(date,cat,amount)=>{const n=Number(amount||0);if(!date||n<=0)return;const day=String(date).slice(0,10);if(!inMonth(day))return;daily[day]=(daily[day]||0)+n;cats[cat]=(cats[cat]||0)+n};
+ monthTrips.forEach(t=>{(t.expenses||[]).forEach(e=>add(e.date||t.startDate,e.category||"Other",e.amount));(t.stops||[]).forEach(s=>{add(s.date||t.startDate,"Activities / Stops",s.price);(s.legs||[]).forEach(l=>add(s.date||t.startDate,"Transportation",l.price))})});
+ const totalMonth=Object.values(daily).reduce((n,v)=>n+v,0),days=Object.entries(daily).sort((a,b)=>a[0].localeCompare(b[0])),catRows=Object.entries(cats).sort((a,b)=>b[1]-a[1]),maxCat=catRows[0]?.[1]||1;
  const monthLabel=monthStart.toLocaleDateString(undefined,{month:"long",year:"numeric"});
- const tripNames=monthTrips.map(t=>t.name).join(" · ");
+ const options=months.length?months.map(x=>{const q=x.split("-").map(Number),d=new Date(q[0],q[1]-1,1);return '<option value="'+x+'" '+(x===ym?"selected":"")+'>'+d.toLocaleDateString(undefined,{month:"long",year:"numeric"})+'</option>'}).join(""):'<option value="'+ym+'">'+monthLabel+'</option>';
+ const dailyHtml=days.length?days.map(([day,v])=>{const d=new Date(day+"T00:00:00"),tripNames=monthTrips.filter(t=>{const st=t.startDate?new Date(t.startDate+"T00:00:00"):null,en=t.endDate?new Date(t.endDate+"T23:59:59"):st;return st&&en&&st<=new Date(day+"T23:59:59")&&en>=new Date(day+"T00:00:00")}).map(t=>esc(t.name)).join(" · ")||"Travel expense",pct=Math.max(4,Math.round(v/(Math.max(...Object.values(daily),1))*100));return '<article class="card daily-expense-row"><div class="daily-date"><b>'+d.toLocaleDateString(undefined,{day:"2-digit"})+'</b><small>'+d.toLocaleDateString(undefined,{weekday:"short",month:"short"})+'</small></div><div class="daily-main"><b>'+tripNames+'</b><div class="daily-track"><i style="width:'+pct+'%"></i></div></div><strong>฿'+money(v)+'</strong></article>'}).join(""):'<div class="card empty"><div class="big">฿</div><b>No expenses for '+monthLabel+'</b><p>Add expenses inside a trip and they will appear here by date.</p></div>';
+ const catHtml=catRows.length?catRows.map(([k,v],i)=>'<div class="card expense-cat-row"><div><b>'+esc(k)+'</b><small>'+(totalMonth?Math.round(v/totalMonth*100):0)+'% of monthly spending</small></div><strong>฿'+money(v)+'</strong><div class="cat-track"><i class="cat-'+(i%7)+'" style="width:'+Math.max(3,Math.round(v/maxCat*100))+'%"></i></div></div>').join(""):'<div class="card empty">No category data yet.</div>';
  a.innerHTML=shellHead("Expense Summary","See your travel spending by day, month, trip and category.")+
- `<div class="expense-month-picker card"><div><div class="eyebrow">TRAVEL MONTH</div><h2>${monthLabel}</h2><p class="muted">${monthTrips.length} trip${monthTrips.length===1?"":"s"} · ${tripNames?esc(tripNames):"No trips in this month"}</p></div><select id="expenseMonth">${months.length?months.map(x=>{const [y,m]=x.split("-").map(Number),d=new Date(y,m-1,1);return \`<option value="${x}" ${x===ym?"selected":""}>${d.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</option>\`}).join(""):\`<option value="${ym}">${monthLabel}</option>\`}</select></div>
- <div class="expense-overview-grid">
-   <div class="card expense-stat"><span>✈</span><small>TRIPS THIS MONTH</small><b>${monthTrips.length}</b><p>${monthTrips.length?"journeys counted":"No travel yet"}</p></div>
-   <div class="card expense-stat"><span>฿</span><small>TOTAL SPENT</small><b>฿${money(totalMonth)}</b><p>${days.length} spending day${days.length===1?"":"s"}</p></div>
-   <div class="card expense-stat"><span>📅</span><small>AVERAGE / SPENDING DAY</small><b>฿${money(days.length?totalMonth/days.length:0)}</b><p>this month</p></div>
- </div>
- <div class="section-title"><h2>Daily Expenses</h2><span class="muted">${days.length} day${days.length===1?"":"s"}</span></div>
- <div class="daily-expense-list">${days.length?days.map(([day,v])=>{const d=new Date(day+"T00:00:00");return \`<article class="card daily-expense-row"><div class="daily-date"><b>${d.toLocaleDateString(undefined,{day:"2-digit"})}</b><small>${d.toLocaleDateString(undefined,{weekday:"short",month:"short"})}</small></div><div class="daily-main"><b>${monthTrips.filter(t=>{const s=t.startDate?new Date(t.startDate+"T00:00:00"):null,e=t.endDate?new Date(t.endDate+"T23:59:59"):s;return s&&e&&s<=new Date(day+"T23:59:59")&&e>=new Date(day+"T00:00:00")}).map(t=>esc(t.name)).join(" · ")||"Travel expense"}</b><div class="daily-track"><i style="width:${Math.max(4,Math.round(v/(Math.max(...Object.values(daily),1))*100))}%"></i></div></div><strong>฿${money(v)}</strong></article>\`}).join(""):\`<div class="card empty"><div class="big">฿</div><b>No expenses for ${monthLabel}</b><p>Add expenses inside a trip and they will appear here by date.</p></div>\`}</div>
- <div class="section-title"><h2>Category Summary</h2><span class="muted">This month</span></div>
- <div class="expense-category-list">${catRows.length?catRows.map(([k,v],i)=>\`<div class="card expense-cat-row"><div><b>${esc(k)}</b><small>${totalMonth?Math.round(v/totalMonth*100):0}% of monthly spending</small></div><strong>฿${money(v)}</strong><div class="cat-track"><i class="cat-${i%7}" style="width:${Math.max(3,Math.round(v/maxCat*100))}%"></i></div></div>\`).join(""):\`<div class="card empty">No category data yet.</div>\`}</div>`;
- document.getElementById("expenseMonth")?.addEventListener("change",e=>{location.hash="expense";window.__expenseMonth=e.target.value;render()});
+ '<div class="expense-month-picker card"><div><div class="eyebrow">TRAVEL MONTH</div><h2>'+monthLabel+'</h2><p class="muted">'+monthTrips.length+' trip'+(monthTrips.length===1?"":"s")+'</p></div><select id="expenseMonth">'+options+'</select></div>'+
+ '<div class="expense-overview-grid"><div class="card expense-stat"><span>✈</span><small>TRIPS THIS MONTH</small><b>'+monthTrips.length+'</b><p>journeys counted</p></div><div class="card expense-stat"><span>฿</span><small>TOTAL SPENT</small><b>฿'+money(totalMonth)+'</b><p>'+days.length+' spending day'+(days.length===1?"":"s")+'</p></div><div class="card expense-stat"><span>📅</span><small>AVERAGE / SPENDING DAY</small><b>฿'+money(days.length?totalMonth/days.length:0)+'</b><p>this month</p></div></div>'+
+ '<div class="section-title"><h2>Daily Expenses</h2><span class="muted">'+days.length+' day'+(days.length===1?"":"s")+'</span></div><div class="daily-expense-list">'+dailyHtml+'</div>'+
+ '<div class="section-title"><h2>Category Summary</h2><span class="muted">This month</span></div><div class="expense-category-list">'+catHtml+'</div>';
+ document.getElementById("expenseMonth")?.addEventListener("change",e=>{window.__expenseMonth=e.target.value;location.hash="expense";render()});
 }
 function anniversary(a){
  const p=db.profile;
