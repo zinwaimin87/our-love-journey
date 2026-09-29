@@ -999,3 +999,62 @@ body{min-width:0;overflow-x:hidden}
 .map-search-result{width:100%;text-align:left;display:grid;gap:3px;padding:10px 11px;margin-top:6px;border-radius:12px;border:1px solid rgba(70,220,255,.1);background:rgba(8,18,43,.7);color:#e9fbff;cursor:pointer}
 .map-search-result b{font-size:8px}.map-search-result small{font-size:6.8px;color:#8fa7bb;line-height:1.35}
 .map-search-result:active{transform:scale(.99);background:rgba(40,110,150,.22)}
+
+/* === S26 ULTRA FINAL TOUCH / MOBILE POLISH === */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overscroll-behavior-x:none}
+button,.btn,.nav-btn,.tab,.icon-btn,.quick-card{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+input,textarea,select{touch-action:manipulation;-webkit-appearance:none;appearance:none}
+button:active,.btn:active,.nav-btn:active,.tab:active,.icon-btn:active,.quick-card:active{transform:translateY(1px) scale(.985)}
+.btn,.nav-btn,.tab,.icon-btn{min-height:42px}
+.topbar{padding-top:max(8px,env(safe-area-inset-top))}
+@media(max-width:820px){
+  :root{--mobile-gutter:10px}
+  body{min-width:0;overflow-x:hidden}
+  main{width:100%;overflow:visible}
+  .card,.panel,.trip-card,.quick-card,.timebox,.expense{overflow:hidden}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  .actions .btn{width:100%;min-width:0;white-space:normal}
+  .actions .btn:only-child{grid-column:1/-1}
+  .topbar{padding-left:10px;padding-right:10px}
+  .brand{min-width:0;max-width:70vw}
+  .brand b,.brand small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bottom-nav,.topbar nav{padding-bottom:max(5px,env(safe-area-inset-bottom))}
+  .topbar nav{scrollbar-width:none;-ms-overflow-style:none}
+  .topbar nav::-webkit-scrollbar{display:none}
+  .nav-btn{min-height:46px}
+  .form-grid{grid-template-columns:1fr;min-width:0}
+  .field.full{grid-column:auto}
+  .trip-header,.trip-card,.detailed-trip .trip-main{min-width:0}
+  .trip-title,.trip-main>div{min-width:0}
+  .trip-title h2,.trip-card h3,.stop h4{overflow-wrap:anywhere}
+  .stop{grid-template-columns:24px minmax(0,1fr) auto}
+  .stop>div:nth-child(2){min-width:0}
+  .stop .actions{display:flex;width:auto;margin-top:7px}
+  .stop .actions .btn{width:auto;min-height:36px}
+  .map-picker-trigger{grid-column:1/-1}
+  .map-picker-modal,.trip-map-modal{padding:10px!important;align-items:flex-end!important}
+  .map-picker-modal .modal-card,.trip-map-modal .modal-card,
+  .map-picker-modal>div,.trip-map-modal>div{max-height:calc(100dvh - 20px);max-height:calc(100svh - 20px);overflow:auto;-webkit-overflow-scrolling:touch;border-radius:22px!important}
+  #mapPickerMap,#tripMapCanvas{height:min(54dvh,430px)!important;min-height:280px}
+  .map-search-results{max-height:30dvh;overflow:auto;-webkit-overflow-scrolling:touch}
+  .map-search-result{min-height:52px;padding:11px}
+  .map-quick{grid-template-columns:repeat(2,1fr)!important;gap:7px!important}
+  .map-quick button{min-height:42px}
+  .map-search-state{padding:13px;font-size:12px}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom));max-width:calc(100vw - 24px);text-align:center}
+  textarea{min-height:88px}
+}
+@media(max-width:380px){
+  main{padding-left:8px;padding-right:8px}
+  .actions{grid-template-columns:1fr}
+  .actions .btn{grid-column:auto!important}
+  .hero h1{font-size:35px}
+  .nav-btn{font-size:16px}
+  .nav-btn span{font-size:7px}
+}
+@media(min-width:821px){
+  .actions .btn{min-height:42px}
+}
+/* modal sheets: keep content reachable above Android browser/navigation areas */
+.modal,.modal-overlay,.form-modal,.photo-viewer,.map-picker-modal,.trip-map-modal{padding-bottom:max(10px,env(safe-area-inset-bottom))}
