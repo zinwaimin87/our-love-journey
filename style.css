@@ -953,3 +953,5 @@ body{min-width:0;overflow-x:hidden}
 @media(max-width:520px){.hero-card{min-height:320px;padding:24px}.hero h1{font-size:38px}.hero-heart{right:18px;font-size:42px}}
 
 .trip-cover-card{position:relative;overflow:hidden}.trip-cover-image{display:block;width:100%;height:190px;object-fit:cover;border-radius:18px;margin:-4px -4px 14px;width:calc(100% + 8px)}.trip-cover-placeholder{height:110px;border-radius:18px;margin-bottom:14px;display:grid;place-items:center;font-size:42px;background:linear-gradient(135deg,rgba(0,220,255,.14),rgba(125,70,255,.18),rgba(255,190,50,.12))}.trip-cover-tools{display:flex;justify-content:flex-end;margin:-6px 0 12px}.trip-cover-tools .btn{font-size:12px}
+
+.expense-budget-panel{margin-bottom:18px}.expense-budget-panel .section-title{margin:0 0 12px}.expense-budget-panel .budget-mini{margin-top:10px}.expense-budget-panel .budget-mini.over{outline:1px solid rgba(255,90,100,.35)}
