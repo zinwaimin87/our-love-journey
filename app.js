@@ -125,7 +125,7 @@ function updateNextStopBar(){
    '<div class="ns3-main">'+
      '<div class="ns3-kicker"><span class="ns3-pin">📍</span><span>NEXT STOP</span><b>STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</b></div>'+
      '<div class="ns3-destination">'+esc(to)+'</div>'+
-     '<div class="ns3-route"><span class="ns3-vehicle">'+icon+' '+esc(label)+'</span><span>'+esc(from)+'</span><i>→</i><strong>'+esc(to)+'</strong><small>'+planned+'</small></div>'+
+     '<div class="ns3-route"><span class="ns3-vehicle">'+icon+' '+esc(label)+'</span><span class="ns3-state">'+esc(planned)+'</span><span class="ns3-from">From '+esc(from)+'</span></div>'+
    '</div>'+
    '<a class="ns3-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
    '<div class="ns3-progress"><em style="width:'+pct+'%"></em></div>'+
