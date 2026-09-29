@@ -139,6 +139,7 @@ function home(a){
  <div class="section-title"><h2>Your Journey</h2><span class="muted">${db.trips.length} trip(s)</span></div>
  <div class="home-trip-grid">${journeyCards||`<div class="card empty"><div class="big">✈</div><b>No journeys yet</b><p>Start your first journey.</p></div>`}</div>`;
  if(age){const update=()=>{const s=Math.max(0,Math.floor((Date.now()-new Date(db.profile.startDate+"T00:00:00").getTime())/1000));const hs=Math.floor(s/3600)%24,mi=Math.floor(s/60)%60,se=s%60;const eh=document.getElementById("liveHours"),em=document.getElementById("liveMinutes"),es=document.getElementById("liveSec");if(eh)eh.textContent=hs;if(em)em.textContent=mi;if(es)es.textContent=se};clearInterval(window.__homeTimer);update();window.__homeTimer=setInterval(update,1000)}
+ const refreshTripCountdown=()=>{const h=homeUpcoming(),el=document.getElementById("homeTripCountdown");if(!el)return;const tc=tripCountdown(h.nextTrip);el.textContent=!h.nextTrip?"Plan your next journey":tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m "+tc.seconds+"s":"Planned"};clearInterval(window.__homeTripTimer);refreshTripCountdown();window.__homeTripTimer=setInterval(refreshTripCountdown,1000);
 }
 function nextOccurrence(date){
   if(!date)return null;
