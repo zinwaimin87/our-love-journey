@@ -457,7 +457,7 @@ function finishedTripDetail(t){
  const cats=categorySummary(t), routeCount=t.stops.length, reached=t.stops.filter(s=>s.reached).length, spent=total(t);
  return `<div class="card panel">
   <div class="trip-detail-head"><div><span class="badge">Finished</span><h2>${esc(t.name)}</h2><p>${esc(t.destination||"")}${t.startDate?" · "+t.startDate:""}${t.endDate?" → "+t.endDate:""}</p></div><div class="actions"><a class="btn map-btn" href="${tripMapsUrl(t)}" target="_blank" rel="noopener">🗺️ Route</a><button class="btn secondary" id="backHistory">← History</button></div></div>
-  <div class="history-summary">
+  <div class="history-hero-glow"></div><div class="history-summary">
    <div><small>STOPS</small><strong>${reached} / ${routeCount}</strong></div>
    <div><small>SPENT</small><strong>฿${money(spent)}</strong></div>
    <div><small>BUDGET</small><strong>฿${money(t.budget||0)}</strong></div>
