@@ -152,7 +152,27 @@ async function chooseGlobalMemory(){
 }
 function history(a){
  const done=db.trips.filter(t=>t.finished);
+ const detail=db.activeTripId?db.trips.find(t=>t.id===db.activeTripId&&t.finished):null;
+ if(detail){a.innerHTML=shellHead("Journey Detail","Completed trip summary, route and spending.")+finishedTripDetail(detail);return}
  a.innerHTML=shellHead("Finished Journeys","Your completed trips stay here with routes, timestamps and expenses.")+(done.length?done.slice().reverse().map(tripMini).join(""):`<div class="card empty"><div class="big">◷</div>No finished journeys yet.</div>`);
+}
+function finishedTripDetail(t){
+ const cats=categorySummary(t), routeCount=t.stops.length, reached=t.stops.filter(s=>s.reached).length, spent=total(t);
+ return `<div class="card panel">
+  <div class="trip-detail-head"><div><span class="badge">Finished</span><h2>${esc(t.name)}</h2><p>${esc(t.destination||"")}${t.startDate?" · "+t.startDate:""}${t.endDate?" → "+t.endDate:""}</p></div><button class="btn secondary" id="backHistory">← History</button></div>
+  <div class="history-summary">
+   <div><small>STOPS</small><strong>${reached} / ${routeCount}</strong></div>
+   <div><small>SPENT</small><strong>฿${money(spent)}</strong></div>
+   <div><small>BUDGET</small><strong>฿${money(t.budget||0)}</strong></div>
+   <div><small>REMAINING</small><strong>฿${money((Number(t.budget||0)-spent))}</strong></div>
+  </div>
+ </div>
+ <div class="section-title"><h2>Route Timeline</h2></div>
+ <div class="timeline history-timeline">${t.stops.length?t.stops.map((s,i)=>`<div class="stop route-stop ${s.reached?"reached":""}"><div class="stop-dot"></div><div><div class="stop-top"><span class="stop-number">${i+1}</span><h4>${esc(s.name)}</h4></div><small>${s.date||"No planned date"} ${s.time||""}${s.reached?" · Reached "+new Date(s.reachedAt).toLocaleString():""}</small>${s.note?`<p class="muted">${esc(s.note)}</p>`:""}${Number(s.price||0)?`<div class="stop-price">Place / Stop Price: <strong>฿${money(s.price)}</strong></div>`:""}<div class="route-legs">${(s.legs||[]).map((l,j)=>`<div class="route-leg"><span class="leg-index">${j+1}</span><div class="leg-main"><b>${esc(l.from)} → ${esc(l.to)}</b><small>${esc(l.vehicle||"Transport")}${l.note?" · "+esc(l.note):""}</small></div><strong>฿${money(l.price)}</strong></div>`).join("")}</div></div></div>`).join(""):`<div class="empty">No route stops saved.</div>`}</div>
+ <div class="section-title"><h2>Expenses</h2></div>
+ <div class="split"><div class="card panel"><div class="muted">Total Spent</div><div class="total">฿${money(spent)}</div></div><div class="card panel"><div class="muted">Categories</div><p class="muted" style="line-height:1.8">${cats}</p></div></div>
+ <div class="expense-list">${t.expenses.length?t.expenses.map(e=>`<div class="expense"><div><b>${esc(e.category)}</b><small>${e.date||""}${e.note?" · "+esc(e.note):""}</small></div><strong>฿${money(e.amount)}</strong></div>`).join(""):`<div class="empty">No expenses recorded.</div>`}</div>
+ <div class="actions history-detail-actions"><button class="btn secondary" data-edit-history-trip="${t.id}">Edit Trip</button><button class="btn danger" data-delete-history-trip="${t.id}">Delete Trip</button></div>`;
 }
 function settings(a){
  const p=db.profile;
@@ -182,6 +202,7 @@ document.addEventListener("click",e=>{
  ],vals=>{if(!vals.title.trim())return toast("Title is required");db.specialDays.push({id:uid(),title:vals.title.trim(),type:vals.type,date:vals.date,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Special day saved")});return}
 
  const pg=e.target.closest("[data-page]");if(pg){go(pg.dataset.page);return}
+ if(e.target.id==="backHistory"){db.activeTripId=null;save();render();return}
  const editHistory=e.target.closest("[data-edit-history-trip]");
  if(editHistory){
   const t=db.trips.find(x=>String(x.id)===String(editHistory.dataset.editHistoryTrip));if(!t)return;
@@ -209,7 +230,7 @@ document.addEventListener("click",e=>{
   }
   return;
  }
- const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go("travel");return}
+ const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go(db.trips.find(t=>t.id===open.dataset.openTrip)?.finished?"history":"travel");return}
  const editLeg=e.target.closest("[data-edit-leg]");
  if(editLeg){
   const t=db.trips.find(x=>x.id===db.activeTripId),s=t?.stops.find(x=>String(x.id)===String(editLeg.dataset.editLeg)),leg=s?.legs?.find(x=>String(x.id)===String(editLeg.dataset.legId));if(!leg)return;
