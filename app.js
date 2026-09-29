@@ -230,7 +230,7 @@ document.addEventListener("click",e=>{
   }
   return;
  }
- const open=e.target.closest("[data-open-trip]");if(open){db.activeTripId=open.dataset.openTrip;save();go(db.trips.find(t=>t.id===open.dataset.openTrip)?.finished?"history":"travel");return}
+ const open=e.target.closest("[data-open-trip]");if(open){const trip=db.trips.find(t=>t.id===open.dataset.openTrip);if(!trip)return;db.activeTripId=trip.id;save();const target=trip.finished?"history":"travel";if(pageName()===target){render()}else{go(target)}return}
  const editLeg=e.target.closest("[data-edit-leg]");
  if(editLeg){
   const t=db.trips.find(x=>x.id===db.activeTripId),s=t?.stops.find(x=>String(x.id)===String(editLeg.dataset.editLeg)),leg=s?.legs?.find(x=>String(x.id)===String(editLeg.dataset.legId));if(!leg)return;
