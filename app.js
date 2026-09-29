@@ -35,7 +35,7 @@ function normalizeData(raw){
       updatedAt:t?.updatedAt||t?.createdAt||Date.now()
     };
   });
-  d.activeTripId=d.trips.some(t=>t.id===d.activeTripId&&!t.finished)?d.activeTripId:null;
+  d.activeTripId=d.trips.some(t=>t.id===d.activeTripId)?d.activeTripId:null;
   d.memories=Array.isArray(d.memories)?d.memories:[];
   d.specialDays=Array.isArray(d.specialDays)?d.specialDays.map(x=>({...x,id:x?.id||uid(),tripId:x?.tripId||""})):[];
   return d;
