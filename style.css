@@ -1292,6 +1292,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{overflow-x:hidden;-webkit-tap
 .ns3-route strong{color:#eaf9ff;font-weight:800;overflow:hidden;text-overflow:ellipsis}
 .ns3-route small{margin-left:3px;color:#8299bc;font-size:6.5px;overflow:hidden;text-overflow:ellipsis}
 .ns3-vehicle{flex:0 0 auto;padding:4px 7px;border-radius:999px;background:linear-gradient(135deg,#f4b33c,#ff6437);color:#fff;font-size:7.5px;font-weight:900;box-shadow:0 4px 12px rgba(255,104,52,.18)}
+.ns3-actions{position:absolute;right:10px;top:10px;display:flex;align-items:center;gap:6px;z-index:4}.ns3-reach{height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(94,229,255,.45);background:linear-gradient(135deg,rgba(25,205,226,.2),rgba(112,91,255,.25));color:#e9fcff;font-size:10px;font-weight:900;white-space:nowrap}.ns3-reach:active{transform:scale(.96)}
 .ns3-map{position:absolute!important;right:10px!important;top:10px!important;width:30px!important;height:30px!important;display:grid!important;place-items:center!important;border-radius:50%!important;text-decoration:none!important;color:#c9f8ff!important;background:rgba(8,19,49,.62)!important;border:1px solid rgba(93,224,255,.36)!important;font-size:13px!important;z-index:3}
 .ns3-progress{position:absolute;left:13px;right:13px;bottom:5px;height:2px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
 .ns3-progress em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2ce8ff,#8c6cff);box-shadow:0 0 9px rgba(65,222,255,.55)}
