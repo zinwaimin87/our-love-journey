@@ -408,3 +408,25 @@ body{min-width:0;overflow-x:hidden}
  .ns-route i{max-width:155px}
  .ns-map{display:none}
 }
+
+/* Next Stop — high visibility 3D top bar */
+.topbar{flex-wrap:wrap;align-items:center}
+.next-stop-bar{order:2;flex:1;max-width:none;min-width:0;margin-left:14px}
+.next-stop-inner{min-height:54px;padding:8px 12px;border:1px solid rgba(76,235,255,.55);background:linear-gradient(100deg,rgba(0,226,255,.16),rgba(65,91,255,.22) 45%,rgba(157,72,255,.2) 75%,rgba(255,198,70,.13));box-shadow:0 0 18px rgba(0,220,255,.16),inset 0 0 25px rgba(125,92,255,.12);transform-style:preserve-3d}
+.next-stop-inner:before{opacity:.9}
+.ns-orb{width:38px;height:38px;border-radius:12px;font-size:17px;box-shadow:0 0 20px rgba(57,231,255,.6),0 0 35px rgba(139,108,255,.32)}
+.ns-route small,.next-stop-inner small{font-size:7px;letter-spacing:1.8px;color:#80f5ff}
+.ns-route b{font-size:14px;color:#fff;text-shadow:0 0 12px rgba(110,230,255,.25)}
+.ns-route i{font-size:9px;color:#d2dcff;max-width:520px}
+.ns-map{font-size:9px;padding:7px 10px;background:linear-gradient(135deg,rgba(57,231,255,.16),rgba(142,95,255,.18));border-color:rgba(100,235,255,.38)}
+@media(max-width:720px){
+ .topbar{height:auto;min-height:66px;padding:8px 10px;gap:7px}
+ .brand{flex:0 0 auto}
+ .next-stop-bar{order:2;flex-basis:100%;width:100%;margin:0}
+ .next-stop-inner{min-height:54px;padding:7px 9px;border-radius:15px}
+ .ns-orb{width:34px;height:34px;font-size:15px}
+ .ns-route small{font-size:6px;letter-spacing:1.5px}
+ .ns-route b{font-size:11px}
+ .ns-route i{font-size:8px;max-width:calc(100vw - 125px)}
+ .ns-map{font-size:8px;padding:6px 8px}
+}
