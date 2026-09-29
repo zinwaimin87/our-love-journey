@@ -30,6 +30,8 @@ function load(){
 }
 let db=load();
 function save(){db=normalizeData(db);localStorage.setItem(KEY,JSON.stringify(db))}
+function exportBackup(){const payload={version:2,exportedAt:new Date().toISOString(),app:"Our Love Journey",data:db};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup-"+today()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Backup exported ♡")}
+
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
 function toast(t){const x=document.getElementById("toast");if(!x)return;x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
@@ -368,8 +370,8 @@ function settings(a){
  <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div>`;
  document.getElementById("saveSet").onclick=()=>{db.profile.name1=document.getElementById("sn1").value.trim();db.profile.name2=document.getElementById("sn2").value.trim();db.profile.startDate=document.getElementById("sd2").value;save();toast("Settings saved");render()}
 document.getElementById("installAppBtn")?.addEventListener("click",installApp);document.getElementById("enableRemindersBtn")?.addEventListener("click",enableReminders);
- document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup.json";a.click();URL.revokeObjectURL(u)}
- document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
+ document.getElementById("export").onclick=exportBackup
+ document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const raw=JSON.parse(r.result);const incoming=raw?.data||raw;if(!incoming||typeof incoming!=="object")throw new Error();if(!confirm("Import this backup and replace the current data?"))return;db=normalizeData(incoming);save();toast("Backup imported ♡");render()}catch{toast("Invalid backup file")}};r.readAsText(f)}
  document.getElementById("clear").onclick=()=>{if(confirm("Clear all Love Journey data from this device?")){db=structuredClone(blank);save();render();toast("All data cleared")}}
 }
 function today(){return new Date().toISOString().slice(0,10)}
