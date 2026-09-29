@@ -947,3 +947,7 @@ body{min-width:0;overflow-x:hidden}
 @media(max-width:600px){.expense-month-picker{padding:11px}.expense-month-picker select{max-width:145px}.expense-overview-grid{grid-template-columns:repeat(2,1fr)}.expense-stat:last-child{grid-column:1/-1}.expense-stat{padding:11px}.expense-stat b{font-size:15px}.daily-expense-row{grid-template-columns:42px 1fr auto;padding:9px}.daily-main>b{font-size:8px}}
 
 .install-app-btn{margin:12px 0;width:100%;justify-content:center;background:linear-gradient(135deg,#43efff,#6f7cff,#9b6cff);color:#06102b;border:0;font-weight:900}.install-app-btn::before{content:"";position:absolute}.install-app-btn{display:flex;align-items:center;gap:8px}
+
+/* Mobile visual polish: replace pink accent with cyan-violet-gold */
+.hero-heart{color:#59efff;background:linear-gradient(135deg,#59efff,#7c72ff,#ffd166);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 24px rgba(89,239,255,.35)}
+@media(max-width:520px){.hero-card{min-height:320px;padding:24px}.hero h1{font-size:38px}.hero-heart{right:18px;font-size:42px}}
