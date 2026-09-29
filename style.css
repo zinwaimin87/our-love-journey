@@ -1115,3 +1115,27 @@ button:active,.btn:active,.nav-btn:active,.tab:active,.icon-btn:active,.quick-ca
  .photo-viewer button,.memory-viewer button{min-width:44px;min-height:44px;border-radius:14px}
  .photo-viewer .viewer-caption,.memory-viewer .viewer-caption{bottom:70px;font-size:12px}
 }
+
+/* === HOME PREMIUM DASHBOARD v2 === */
+.home-dashboard .smart-card{position:relative;overflow:hidden;border:1px solid rgba(91,222,255,.12);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.home-dashboard .smart-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(36,229,255,.07),transparent 48%,rgba(151,103,255,.08));pointer-events:none}
+.home-dashboard .smart-card:hover{transform:translateY(-2px);border-color:rgba(91,222,255,.3);box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.home-dashboard .smart-card>span{box-shadow:0 0 18px rgba(32,241,255,.1)}
+.home-dashboard .smart-card em{margin-left:auto;font-style:normal;color:#6eeaff;font-size:20px;opacity:.7}
+.smart-dashboard-wide{position:relative;overflow:hidden;border:1px solid rgba(91,222,255,.16);background:radial-gradient(circle at 88% 20%,rgba(132,92,255,.16),transparent 35%),linear-gradient(135deg,rgba(12,28,67,.92),rgba(5,9,28,.96));padding:16px 18px;margin-bottom:18px;box-shadow:inset 0 1px rgba(255,255,255,.04),0 15px 35px rgba(0,0,0,.18)}
+.smart-dashboard-wide:after{content:"";position:absolute;width:150px;height:150px;right:-65px;bottom:-90px;border-radius:50%;border:1px solid rgba(255,214,107,.16);box-shadow:0 0 45px rgba(57,231,255,.08);pointer-events:none}
+.smart-dashboard-wide h3{margin:5px 0 2px;font-size:18px}
+.smart-dashboard-wide p{margin:0;color:#9eabd3;font-size:10px}
+.smart-pulse{height:7px;margin:14px 0 7px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+.smart-pulse span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--violet),#ffd66b);box-shadow:0 0 14px rgba(57,231,255,.35);transition:width .5s ease}
+.smart-pulse-meta{display:flex;align-items:center;justify-content:space-between}.smart-pulse-meta b{font-size:13px}.smart-pulse-meta small{font-size:9px;color:#9eabd3}
+@media(max-width:600px){
+ .home-dashboard{gap:7px;margin-bottom:10px}
+ .home-dashboard .smart-card{min-height:70px;padding:10px 9px}
+ .home-dashboard .smart-card b{font-size:10px}
+ .home-dashboard .smart-card p{font-size:8px}
+ .home-dashboard .smart-card em{font-size:17px}
+ .smart-dashboard-wide{padding:14px;margin-bottom:14px;border-radius:18px}
+ .smart-dashboard-wide h3{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.home-dashboard .smart-card,.smart-dashboard-wide *{animation:none!important;transition:none!important}}
