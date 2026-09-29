@@ -897,3 +897,31 @@ body{min-width:0;overflow-x:hidden}
  .stop-status-actions{justify-content:flex-start}
  .stop-status-actions .btn{flex:1;min-width:130px}
 }
+
+/* Stop detail modal */
+.stop-detail-modal{max-width:720px!important}
+.stop-detail-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.stop-detail-title h2{margin:0 0 6px;font-size:24px}
+.stop-detail-modal .stop-status{width:100%;margin:8px 0 14px}
+.stop-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stop-detail-grid>div,.stop-detail-note{padding:11px 12px;border-radius:13px;background:rgba(9,22,52,.55);border:1px solid rgba(80,220,255,.12)}
+.stop-detail-grid small,.stop-detail-note small{display:block;color:#73eaff;font-size:7px;font-weight:900;letter-spacing:1.4px}
+.stop-detail-grid b{display:block;margin-top:4px;color:#fff;font-size:10px}
+.stop-detail-note{margin-top:8px}.stop-detail-note p{margin:5px 0 0;font-size:10px;color:#dce6ff}
+.stop-detail-modal .section-title{margin:16px 0 8px}
+.stop-detail-modal .section-title h3{margin:0;font-size:12px}
+.stop-detail-legs{display:grid;gap:6px}
+.stop-detail-leg{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:12px;background:rgba(8,20,48,.5);border:1px solid rgba(80,220,255,.1)}
+.stop-detail-leg>span{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:rgba(50,220,255,.1);color:#73eaff;font-size:9px}
+.stop-detail-leg b{display:block;font-size:10px;color:#fff}.stop-detail-leg small{display:block;margin-top:2px;font-size:8px;color:#93a6cc}.stop-detail-leg strong{font-size:10px}
+.stop-detail-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stop-photo{position:relative;overflow:hidden;border-radius:12px;background:#07132d;min-height:90px}
+.stop-photo img{display:block;width:100%;height:110px;object-fit:cover}
+.stop-photo .mini-btn{position:absolute;right:5px;bottom:5px;background:rgba(3,8,25,.75)}
+@media(max-width:720px){
+ .stop-detail-modal{width:min(94vw,720px)!important}
+ .stop-detail-title h2{font-size:20px}
+ .stop-detail-grid{grid-template-columns:1fr 1fr}
+ .stop-detail-photos{grid-template-columns:repeat(2,1fr)}
+ .stop-photo img{height:100px}
+}
