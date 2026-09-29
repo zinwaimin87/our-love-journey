@@ -196,9 +196,9 @@ function expensePage(a){
 }
 function anniversary(a){
  const p=db.profile;
- a.innerHTML=shellHead("Our Anniversary","Set your names and relationship date whenever you're ready.")+`<div class="card panel"><div class="form-grid"><div class="field"><label>First name</label><input id="n1" value="${esc(p.name1)}" placeholder="Enter name"></div><div class="field"><label>Second name</label><input id="n2" value="${esc(p.name2)}" placeholder="Enter name"></div><div class="field"><label>Relationship / Anniversary date</label><input id="date" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveProfile">Save</button></div></div>${p.startDate?renderAge(p.startDate)+relationshipMilestones(p.startDate):`<div class="card empty"><div class="big">♡</div>Add your anniversary date to start the live counter.</div>`}`;
+ a.innerHTML=shellHead("Our Anniversary","Set your names and relationship date whenever you're ready.")+`<div class="card panel"><div class="form-grid"><div class="field"><label>First name</label><input id="n1" value="${esc(p.name1)}" placeholder="Enter name"></div><div class="field"><label>Second name</label><input id="n2" value="${esc(p.name2)}" placeholder="Enter name"></div><div class="field"><label>Relationship / Anniversary date</label><input id="date" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveProfile">Save</button></div></div>${p.startDate?renderAge(p.startDate)+anniversaryNextCountdown(p.startDate)+relationshipMilestones(p.startDate):`<div class="card empty"><div class="big">♡</div>Add your anniversary date to start the live counter.</div>`}`;
  document.getElementById("saveProfile").onclick=()=>{db.profile.name1=document.getElementById("n1").value.trim();db.profile.name2=document.getElementById("n2").value.trim();db.profile.startDate=document.getElementById("date").value;save();toast("Anniversary saved");render()}
- if(p.startDate){updateAnniversaryLive(p.startDate);clearInterval(window.__anniversaryTimer);window.__anniversaryTimer=setInterval(()=>updateAnniversaryLive(db.profile.startDate),1000)}
+ if(p.startDate){updateAnniversaryLive(p.startDate);clearInterval(window.__anniversaryTimer);window.__anniversaryTimer=setInterval(()=>{updateAnniversaryLive(db.profile.startDate);updateAnniversaryNextLive(db.profile.startDate)},1000);updateAnniversaryNextLive(p.startDate)}
 }
 function preciseAge(d){
  const start=new Date(d+"T00:00:00"), now=new Date();
@@ -221,9 +221,20 @@ function updateAnniversaryLive(d){
  const x=preciseAge(d);if(!x)return;
  ["annYears","annMonths","annDays","annHours","annMinutes","annSeconds"].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[x.years,x.months,x.days,x.hours,x.minutes,x.seconds][i]});
 }
+function anniversaryNextCountdown(d){
+ const next=nextOccurrence(d); if(!next)return "";
+ const diff=Math.max(0,next-Date.now()),days=Math.floor(diff/86400000),hours=Math.floor(diff%86400000/3600000),minutes=Math.floor(diff%3600000/60000),seconds=Math.floor(diff%60000/1000);
+ const n=new Date(d+"T00:00:00"); const years=next.getFullYear()-n.getFullYear();
+ return '<div class="card panel ann-next-card"><div><div class="eyebrow">NEXT ANNIVERSARY</div><h2>'+esc(years+' Year'+(years===1?'':'s'))+' ♡</h2><p class="muted">'+next.toLocaleDateString()+'</p></div><div class="countdown"><div class="timebox"><b id="annNextDays">'+days+'</b><small>Days</small></div><div class="timebox"><b id="annNextHours">'+hours+'</b><small>Hours</small></div><div class="timebox"><b id="annNextMinutes">'+minutes+'</b><small>Min</small></div><div class="timebox"><b id="annNextSeconds">'+seconds+'</b><small>Sec</small></div></div></div>';
+}
+function updateAnniversaryNextLive(d){
+ const n=nextOccurrence(d);if(!n)return;
+ const diff=Math.max(0,n-Date.now());
+ ["annNextDays","annNextHours","annNextMinutes","annNextSeconds"].forEach((id,i)=>{const el=document.getElementById(id);if(!el)return;el.textContent=[Math.floor(diff/86400000),Math.floor(diff%86400000/3600000),Math.floor(diff%3600000/60000),Math.floor(diff%60000/1000)][i]});
+}
 function relationshipMilestones(d){
  const start=new Date(d+"T00:00:00"); if(isNaN(start))return "";
- const targets=[["1 Month",()=>{const x=new Date(start);x.setMonth(x.getMonth()+1);return x}],["100 Days",()=>new Date(start.getTime()+100*86400000)],["6 Months",()=>{const x=new Date(start);x.setMonth(x.getMonth()+6);return x}],["1 Year",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+1);return x}],["2 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+2);return x}],["3 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+3);return x}],["5 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+5);return x}]];
+ const targets=[["1 Month",()=>{const x=new Date(start);x.setMonth(x.getMonth()+1);return x}],["100 Days",()=>new Date(start.getTime()+100*86400000)],["6 Months",()=>{const x=new Date(start);x.setMonth(x.getMonth()+6);return x}],["1 Year",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+1);return x}],["1000 Days",()=>new Date(start.getTime()+1000*86400000)],["2 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+2);return x}],["3 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+3);return x}],["5 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+5);return x}],["10 Years",()=>{const x=new Date(start);x.setFullYear(x.getFullYear()+10);return x}]];
  const now=new Date(); const items=targets.map(([label,fn])=>({label,date:fn()})).filter(x=>x.date>now).sort((a,b)=>a.date-b.date);
  const next=items[0];
  if(!next)return '<div class="milestone-card card"><div><div class="eyebrow">NEXT MILESTONE</div><h3>Every day together is a milestone ♡</h3><p class="muted">Keep making memories.</p></div></div>';
