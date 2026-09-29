@@ -33,6 +33,21 @@
     const url=a.getAttribute("href");if(!url)return;
     try{const w=window.open(url,"_blank","noopener,noreferrer");if(!w)location.href=url}catch{location.href=url}
   },true);
+
+  // History: open the finished journey detail immediately, even when the hash is already #history.
+  document.addEventListener("click",function(e){
+    const btn=e.target.closest?.("[data-open-history-trip]");
+    if(!btn)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    const id=String(btn.dataset.openHistoryTrip||"");
+    const d=window.db;
+    const trip=d?.trips?.find(t=>String(t.id)===id);
+    if(!trip)return;
+    d.activeTripId=trip.id;
+    try{localStorage.setItem("our-love-journey-v2",JSON.stringify(d));}catch{}
+    if(typeof window.render==="function")window.render();
+    else location.hash="history";
+  },true);
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>window.updateNextStopBar(),{once:true});
   else window.updateNextStopBar();
 })();
