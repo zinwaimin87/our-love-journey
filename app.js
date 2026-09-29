@@ -61,13 +61,13 @@ function updateNextStopBar(){
  const from=leg?.from||(current?.name||t.destination||"Current");
  const to=leg?.to||next.name;
  const icon=transportIcon(mode),label=transportLabel(mode);
- const routeText=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase())?("Board · "+from+" → Get off · "+to):(from+" → "+to);
- const memA=(t.memories||[])[0]?.data, memB=(t.memories||[])[1]?.data;
- const dist=t.distance?esc(String(t.distance)):null, dur=t.duration?esc(String(t.duration)):null;
- el.innerHTML='<div class="next-stop-visual">'+
-   '<div class="route-photo current-photo" '+(memA?'style="background-image:url(\''+memA+'\')"':'')+'><span class="photo-pin">●</span><div><small>CURRENT</small><b>'+esc(from)+'</b></div></div>'+
-   '<div class="route-center"><div class="route-label">NEXT STOP</div><div class="route-line"><span>›››</span><b>'+icon+' '+esc(label)+'</b><span>›››</span></div><strong>'+esc(to)+'</strong><p>'+esc(routeText)+'</p><div class="route-meta">'+(dist?'◌ '+dist+' ':'')+(dur?' ◷ '+dur+' ':'')+' ▣ '+(next.date?esc(next.date):"Planned")+'</div></div>'+
-   '<div class="route-photo next-photo" '+(memB?'style="background-image:url(\''+memB+'\')"':'')+'><span class="photo-pin">●</span><div><small>NEXT STOP</small><b>'+esc(next.name)+'</b></div></div>'+
+ const isTransit=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase());
+ const routeText=isTransit?("Board · "+from+" → Get off · "+to):(from+" → "+to);
+ const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
+ el.innerHTML='<div class="next-stop-clean">'+
+   '<div class="ns-clean-side"><small>CURRENT</small><b>'+esc(from)+'</b></div>'+
+   '<div class="ns-clean-main"><div class="ns-clean-label"><span class="ns-clean-icon">'+icon+'</span><span>3D NEXT STOP · '+esc(label)+'</span></div><strong>'+esc(to)+'</strong><p>'+esc(routeText)+'</p><small class="ns-clean-time">'+timing+'</small></div>'+
+   '<div class="ns-clean-side next"><small>NEXT STOP</small><b>'+esc(next.name)+'</b></div>'+
    '<a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">↗</a>'+
  '</div>';
 }
