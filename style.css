@@ -370,3 +370,8 @@ body{min-width:0;overflow-x:hidden}
 @keyframes nextStopShine{0%{transform:translateX(-70%) rotate(8deg)}100%{transform:translateX(70%) rotate(8deg)}}
 @media(max-width:720px){.topbar{height:66px;padding:0 10px;gap:8px}.brand{gap:7px}.brand-icon{width:34px;height:34px;border-radius:11px;font-size:21px}.brand b{font-size:11px}.brand small{font-size:8px;letter-spacing:1.5px}.next-stop-bar{min-width:0;max-width:none;flex:1}.next-stop-inner{padding:6px 8px;border-radius:14px;gap:7px}.ns-orb{width:28px;height:28px;border-radius:9px;font-size:13px}.ns-route b,.next-stop-inner b{font-size:9px}.ns-route small,.next-stop-inner small{font-size:6px}.ns-route i,.next-stop-inner i{font-size:7px}}
 @media(max-width:390px){.brand span:last-child{display:none}.next-stop-inner{padding:6px}.ns-route b{font-size:8px}}
+
+.ns-vehicle{font-size:17px!important;transform-style:preserve-3d}
+.ns-arrow{position:relative;z-index:1;margin-left:auto;font-size:20px;color:#7ff3ff;text-shadow:0 0 14px rgba(57,231,255,.7);animation:nextStopArrow 1.7s ease-in-out infinite}
+@keyframes nextStopArrow{50%{transform:translateX(5px) translateZ(8px);opacity:.75}}
+@media(max-width:720px){.ns-vehicle{font-size:14px!important}.ns-arrow{font-size:16px}}
