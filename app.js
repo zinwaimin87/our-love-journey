@@ -118,15 +118,18 @@ function homeUpcoming(){
  return {active,nextTrip,ann,nextStop,memoryCount,spend};
 }
 function homeSmartCards(){
- const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0,tc=tripCountdown(h.nextTrip);
+ const h=homeUpcoming(),progress=h.active?tripProgress(h.active):0,tc=tripCountdown(h.nextTrip);
  const tripSub=h.nextTrip?(tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m":"Planned"):"Plan your next journey";
+ const budget=h.active?Number(h.active.budget||0):0,spent=h.active?total(h.active):0,left=budget-spent;
  return `<div class="smart-home-grid home-dashboard">
-  <button class="smart-card card" data-page="anniversary"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
-  <button class="smart-card card trip-countdown-card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p id="homeTripCountdown">${tripSub}</p></div><em>›</em></button><button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
-  <button class="smart-card card" data-page="memories"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div><em>›</em></button>
-  <button class="smart-card card" data-page="travel"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div><em>›</em></button>
-  <button class="smart-card card" data-page="travel"><span>◈</span><div><small>CURRENT TRIP PROGRESS</small><b>${h.active?progress+"%":"No active trip"}</b><p>${h.active?(h.active.stops||[]).filter(s=>s.reached).length+" / "+(h.active.stops||[]).length+" stops reached":"Open Travel to start"}</p></div><em>›</em></button>
- </div>`;
+ <button class="smart-card card smart-feature anniversary" data-page="anniversary"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
+ <button class="smart-card card smart-feature trip-countdown-card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p id="homeTripCountdown">${tripSub}</p></div><em>›</em></button>
+ <button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
+ <button class="smart-card card" data-page="memories"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div><em>›</em></button>
+ <button class="smart-card card" data-page="expense"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div><em>›</em></button>
+ <button class="smart-card card" data-page="travel"><span>◈</span><div><small>CURRENT TRIP PROGRESS</small><b>${h.active?progress+"%":"No active trip"}</b><p>${h.active?(h.active.stops||[]).filter(s=>s.reached).length+" / "+(h.active.stops||[]).length+" stops reached":"Open Travel to start"}</p></div><em>›</em></button>
+ </div>
+ <div class="smart-dashboard-wide card"><div><div class="eyebrow">LIVE JOURNEY PULSE</div><h3>${h.active?esc(h.active.name):"Your Love Journey"}</h3><p>${h.active?(h.nextStop?"Next: "+esc(h.nextStop.name):"All planned stops reached"):"Set an active trip to see live progress here."}</p></div><div class="smart-pulse"><span style="width:${h.active?Math.max(4,progress):4}%"></span></div><div class="smart-pulse-meta"><b>${h.active?progress+"%":"—"}</b><small>${h.active?(budget?"฿"+money(Math.max(0,left))+" left":"฿"+money(spent)+" spent"):"No active trip"}</small></div></div>`;
 }
 function home(a){
  const n1=db.profile.name1||"Your Name",n2=db.profile.name2||"Love";
