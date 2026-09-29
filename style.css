@@ -345,3 +345,6 @@ body{min-width:0;overflow-x:hidden}
 .milestone-number b{font-size:25px;line-height:1}
 .milestone-number small{margin-top:5px;color:var(--muted)}
 @media(max-width:600px){.milestone-card{padding:16px;gap:12px}.milestone-card h3{font-size:17px}.milestone-number{min-width:66px;height:66px;border-radius:18px}}
+
+.calendar-trip-link{display:inline-flex;margin-top:8px;padding:5px 9px;border-radius:999px;background:rgba(67,214,255,.08);border:1px solid rgba(67,214,255,.16);color:#79e8ff;font-size:11px}
+@media(max-width:600px){.special-actions{display:flex;flex-wrap:wrap;gap:6px}.calendar-trip-link{font-size:10px}}
