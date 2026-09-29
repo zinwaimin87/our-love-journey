@@ -52,10 +52,33 @@ function render(){
  }
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
+function homeUpcoming(){
+ const active=db.trips.find(t=>t.id===db.activeTripId&&!t.finished);
+ const upcomingTrips=(db.trips||[]).filter(t=>!t.finished&&t.startDate).sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+ const nextTrip=upcomingTrips[0]||null;
+ const ann=db.profile.startDate?nextOccurrence(db.profile.startDate):null;
+ const nextStop=active?(active.stops||[]).find(s=>!s.reached):null;
+ const memoryCount=(db.memories||[]).length+(db.trips||[]).reduce((s,t)=>s+(t.memories?.length||0),0);
+ const spend=(db.trips||[]).reduce((s,t)=>s+total(t),0);
+ return {active,nextTrip,ann,nextStop,memoryCount,spend};
+}
+function homeSmartCards(){
+ const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0;
+ return `<div class="smart-home-grid home-dashboard">
+  <div class="smart-card card"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div></div>
+  <div class="smart-card card"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p>${h.nextTrip?h.nextTrip.startDate:"Plan your next journey"}</p></div></div>
+  <div class="smart-card card"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div></div>
+  <div class="smart-card card"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div></div>
+  <div class="smart-card card"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div></div>
+  <div class="smart-card card"><span>◈</span><div><small>CURRENT TRIP PROGRESS</small><b>${h.active?progress+"%":"No active trip"}</b><p>${h.active?(h.active.stops||[]).filter(s=>s.reached).length+" / "+(h.active.stops||[]).length+" stops reached":"Open Travel to start"}</p></div></div>
+ </div>`;
+}
 function home(a){
  const n1=db.profile.name1||"Your Name",n2=db.profile.name2||"Love";
- const age=ageParts(db.profile.startDate),active=db.trips.find(t=>t.id===db.activeTripId);
+ const age=ageParts(db.profile.startDate),active=db.trips.find(t=>t.id===db.activeTripId&&!t.finished);
  a.innerHTML=`<section class="hero"><div class="card hero-card"><h1>${esc(n1)} <span>∞</span> ${esc(n2)}</h1>${age?`<div class="countdown"><div class="timebox"><b>${age.years}</b><small>Years</small></div><div class="timebox"><b>${age.months}</b><small>Months</small></div><div class="timebox"><b>${age.days}</b><small>Days</small></div><div class="timebox"><b id="liveHours">0</b><small>Hours</small></div><div class="timebox"><b id="liveMinutes">0</b><small>Minutes</small></div><div class="timebox"><b id="liveSec">0</b><small>Seconds</small></div></div>`:''}<div class="actions"><button class="btn" data-page="anniversary">♡ Anniversary</button><button class="btn secondary" data-page="travel">✈ Start a Journey</button></div></div></section>
+ <div class="section-title"><h2>Smart Dashboard</h2><span class="muted">Your story at a glance</span></div>
+ ${homeSmartCards()}
  <div class="section-title"><h2>Your Journey</h2><span class="muted">${db.trips.length} trip(s)</span></div>
  <div class="grid"><div class="card stat"><small>Trips</small><div class="num">${db.trips.length}</div><small>saved journeys</small></div><div class="card stat"><small>Reached</small><div class="num">${db.trips.reduce((s,t)=>s+t.stops.filter(x=>x.reached).length,0)}</div><small>places reached</small></div><div class="card stat"><small>Memories</small><div class="num">${db.trips.reduce((s,t)=>s+(t.memories?.length||0),0)+(db.memories||[]).length}</div><small>saved memories</small></div><div class="card stat"><small>Travel Spend</small><div class="num">฿${money(db.trips.reduce((s,t)=>s+total(t),0))}</div><small>expenses + route transport</small></div></div>
  ${active?`<div class="section-title"><h2>Continue Traveling</h2></div><div class="card trip-card"><div><span class="badge">Active</span><h3>${esc(active.name)}</h3><p>${active.stops.filter(x=>x.reached).length} / ${active.stops.length} stops reached · ${esc(active.destination||"")}</p></div><button class="btn" data-open-trip="${active.id}">Continue →</button></div>`:''}`;
