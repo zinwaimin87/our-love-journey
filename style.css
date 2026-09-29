@@ -925,3 +925,19 @@ body{min-width:0;overflow-x:hidden}
  .stop-detail-photos{grid-template-columns:repeat(2,1fr)}
  .stop-photo img{height:100px}
 }
+
+/* Expense Summary Chart */
+.expense-summary{padding:15px;margin-bottom:18px;overflow:hidden}
+.expense-summary-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.expense-summary-head h3{margin:3px 0;font-size:16px}.expense-summary-head p{margin:2px 0;font-size:9px}
+.expense-total{text-align:right}.expense-total small{display:block;color:var(--muted);font-size:7px;letter-spacing:1px}.expense-total b{font-size:16px;color:var(--cyan)}
+.expense-chart-grid{display:grid;grid-template-columns:170px 1fr;gap:16px;align-items:center}
+.expense-donut-wrap{display:grid;place-items:center}
+.expense-donut{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 25px rgba(32,241,255,.12)}
+.expense-donut-hole{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;align-content:center;background:#07102b;border:1px solid rgba(90,220,255,.18);box-shadow:inset 0 0 18px rgba(20,30,80,.8)}
+.expense-donut-hole small{font-size:7px;color:var(--muted);letter-spacing:1px}.expense-donut-hole b{font-size:12px;color:#fff;margin-top:3px}
+.expense-legend{display:grid;gap:7px}.expense-legend-row{display:grid;grid-template-columns:9px 1fr auto;gap:7px;align-items:center}.expense-dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}.dot-0{background:var(--cyan)}.dot-1{background:var(--violet)}.dot-2{background:var(--gold)}.dot-3{background:#ff6ec7}.dot-4{background:#65f59a}.dot-5{background:#ff965f}.dot-6{background:#8db7ff}
+.expense-legend-row b{display:block;font-size:9px}.expense-legend-row small{display:block;color:var(--muted);font-size:7px;margin-top:2px}.expense-legend-row strong{font-size:9px}
+.expense-bars-title{display:flex;justify-content:space-between;margin:15px 0 8px;padding-top:10px;border-top:1px solid rgba(100,150,220,.12);font-size:9px;font-weight:800}.expense-bars-title small{color:var(--muted);font-weight:500}
+.expense-bars{display:grid;gap:9px}.expense-bar-modern{display:grid;gap:4px}.expense-bar-label{display:flex;justify-content:space-between;gap:8px;font-size:9px}.expense-bar-label strong{font-size:9px}.expense-bar-label strong small{color:var(--muted);font-weight:500}.expense-bar-track{height:7px;background:rgba(100,125,210,.13);border-radius:8px;overflow:hidden}.expense-bar-track i{display:block;height:100%;border-radius:8px;box-shadow:0 0 10px currentColor}.chart-bar-0{background:var(--cyan)}.chart-bar-1{background:var(--violet)}.chart-bar-2{background:var(--gold)}.chart-bar-3{background:#ff6ec7}.chart-bar-4{background:#65f59a}.chart-bar-5{background:#ff965f}.chart-bar-6{background:#8db7ff}
+@media(max-width:600px){.expense-summary{padding:11px}.expense-chart-grid{grid-template-columns:1fr;gap:12px}.expense-donut{width:125px;height:125px}.expense-donut-hole{width:78px;height:78px}.expense-donut-hole b{font-size:10px}.expense-legend{gap:6px}.expense-summary-head h3{font-size:14px}}
