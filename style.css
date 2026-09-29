@@ -1331,3 +1331,10 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{overflow-x:hidden;-webkit-tap
     padding:5px 6px!important;
   }
 }
+
+/* Next Stop final polish */
+.ns3-route{gap:8px!important}.ns3-state{color:rgba(235,246,255,.68);font-weight:700}.ns3-from{color:rgba(226,238,255,.42);font-size:8px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:600px){.ns3-route{margin-top:6px!important}.ns3-state{font-size:8px!important}.ns3-from{font-size:7px!important}.ns3-route .ns3-from{display:block!important}.ns3-route{max-width:calc(100% - 5px)}}
+@media(max-width:390px){.ns3-from{display:none!important}.ns3-state{font-size:8px!important}}
+/* Reserve space for the floating bottom navigation so the last dashboard card is never hidden. */
+@media(max-width:820px){body{padding-bottom:82px!important}.app-shell{padding-bottom:22px!important}}
