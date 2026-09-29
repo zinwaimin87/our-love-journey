@@ -55,7 +55,7 @@ function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow
 function home(a){
  const n1=db.profile.name1||"Your Name",n2=db.profile.name2||"Love";
  const age=ageParts(db.profile.startDate),active=db.trips.find(t=>t.id===db.activeTripId);
- a.innerHTML=`<section class="hero"><div class="card hero-card"><div class="eyebrow">A PRIVATE PLACE FOR TWO</div><h1>${esc(n1)} <span>∞</span> ${esc(n2)}</h1><p>Keep your favorite moments, journeys, routes and little memories in one beautiful place. No login. No Gmail. Just yours.</p>${age?`<div class="countdown"><div class="timebox"><b>${age.years}</b><small>Years</small></div><div class="timebox"><b>${age.months}</b><small>Months</small></div><div class="timebox"><b>${age.days}</b><small>Days</small></div><div class="timebox"><b id="liveHours">0</b><small>Hours</small></div><div class="timebox"><b id="liveMinutes">0</b><small>Minutes</small></div><div class="timebox"><b id="liveSec">0</b><small>Seconds</small></div></div>`:''}<div class="actions"><button class="btn" data-page="anniversary">♡ Anniversary</button><button class="btn secondary" data-page="travel">✈ Start a Journey</button></div></div><div class="card orb"><div class="orb-ring"></div></div></section>
+ a.innerHTML=`<section class="hero"><div class="card hero-card"><h1>${esc(n1)} <span>∞</span> ${esc(n2)}</h1>${age?`<div class="countdown"><div class="timebox"><b>${age.years}</b><small>Years</small></div><div class="timebox"><b>${age.months}</b><small>Months</small></div><div class="timebox"><b>${age.days}</b><small>Days</small></div><div class="timebox"><b id="liveHours">0</b><small>Hours</small></div><div class="timebox"><b id="liveMinutes">0</b><small>Minutes</small></div><div class="timebox"><b id="liveSec">0</b><small>Seconds</small></div></div>`:''}<div class="actions"><button class="btn" data-page="anniversary">♡ Anniversary</button><button class="btn secondary" data-page="travel">✈ Start a Journey</button></div></div><div class="card orb"><div class="orb-ring"></div></div></section>
  <div class="section-title"><h2>Your Journey</h2><span class="muted">${db.trips.length} trip(s)</span></div>
  <div class="grid"><div class="card stat"><small>Trips</small><div class="num">${db.trips.length}</div><small>saved journeys</small></div><div class="card stat"><small>Reached</small><div class="num">${db.trips.reduce((s,t)=>s+t.stops.filter(x=>x.reached).length,0)}</div><small>places reached</small></div><div class="card stat"><small>Memories</small><div class="num">${db.trips.reduce((s,t)=>s+(t.memories?.length||0),0)}</div><small>saved memories</small></div><div class="card stat"><small>Travel Spend</small><div class="num">฿${money(db.trips.reduce((s,t)=>s+total(t),0))}</div><small>expenses + route transport</small></div></div>
  ${active?`<div class="section-title"><h2>Continue Traveling</h2></div><div class="card trip-card"><div><span class="badge">Active</span><h3>${esc(active.name)}</h3><p>${active.stops.filter(x=>x.reached).length} / ${active.stops.length} stops reached · ${esc(active.destination||"")}</p></div><button class="btn" data-open-trip="${active.id}">Continue →</button></div>`:''}`;
@@ -190,7 +190,7 @@ document.addEventListener("click",e=>{
    {id:"dest",label:"Destination",type:"text",value:t.destination||""},
    {id:"sd",label:"Start date",type:"date",value:t.startDate||""},
    {id:"ed",label:"End date",type:"date",value:t.endDate||""},
-   {id:"budget",label:"Trip Budget (THB)",type:"number",value:String(t.budget||0)}
+   {id:"budget",label:"Trip Budget (THB)",type:"number",value:t.budget>0?String(t.budget):""}
   ],vals=>{
    if(!vals.tripName.trim())return toast("Trip name is required");
    const budget=Number(vals.budget);if(budget<0||Number.isNaN(budget))return toast("Enter a valid budget");
@@ -221,7 +221,7 @@ document.addEventListener("click",e=>{
   {id:"stopDate",label:"Planned date",type:"date",value:s.date||""},
   {id:"stopTime",label:"Planned time",type:"time",value:s.time||""},
   {id:"stopNote",label:"Note",type:"text",value:s.note||"",placeholder:"Optional note"},
-  {id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",value:String(s.price||0),placeholder:"e.g. 50"}
+  {id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",value:s.price>0?String(s.price):"",placeholder:"e.g. 50"}
  ],vals=>{if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice);if(price<0||Number.isNaN(price))return toast("Enter a valid price");s.name=vals.stopName.trim();s.date=vals.stopDate;s.time=vals.stopTime;s.note=vals.stopNote.trim();s.price=price;save();render();toast("Route stop updated")});return}
  const moveStop=e.target.closest("[data-move-stop]");
  if(moveStop){
