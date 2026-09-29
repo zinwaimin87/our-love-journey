@@ -35,6 +35,13 @@ function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
 function toast(t){const x=document.getElementById("toast");if(!x)return;x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
 function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;document.documentElement.classList.add("install-available");});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;document.documentElement.classList.remove("install-available");toast("Our Love Journey installed ♡");});
+async function installApp(){
+ if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return}
+ toast("Chrome menu → Add to Home screen ကိုရွေးပါ");
+}
 function pageName(){return location.hash.slice(1)||"home"}
 function go(p){location.hash=p}
 function setup3D(){
@@ -371,7 +378,7 @@ function finishedTripDetail(t){
 function settings(a){
  const p=db.profile;
  a.innerHTML=shellHead("Settings","Private, simple and stored on this device.")+`<div class="card panel"><h2>Couple Profile</h2><div class="form-grid"><div class="field"><label>First name</label><input id="sn1" value="${esc(p.name1)}"></div><div class="field"><label>Second name</label><input id="sn2" value="${esc(p.name2)}"></div><div class="field"><label>Anniversary date</label><input id="sd2" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveSet">Save Changes</button></div></div>
- <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div>`;
+ <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div><button class="btn install-app-btn" id="installAppBtn" type="button">⬇ Install Our Love Journey</button>`;
  document.getElementById("saveSet").onclick=()=>{db.profile.name1=document.getElementById("sn1").value.trim();db.profile.name2=document.getElementById("sn2").value.trim();db.profile.startDate=document.getElementById("sd2").value;save();toast("Settings saved")}
  document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup.json";a.click();URL.revokeObjectURL(u)}
  document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
