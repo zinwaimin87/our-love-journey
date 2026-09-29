@@ -127,7 +127,7 @@ function routeTransportTotal(s){return (s.legs||[]).reduce((n,l)=>n+Number(l.pri
 function routeTransportAll(t){return t.stops.reduce((n,s)=>n+routeTransportTotal(s),0)}
 function tripDetail(t){
  return `
-<div class="card panel"><div class="trip-card" style="padding:0;background:none;border:0"><div><span class="badge">${t.finished?"Finished":"Active"}</span><h2 style="margin:10px 0 5px">${esc(t.name)}</h2><p>${esc(t.destination||"")} · ${t.startDate||""} ${t.endDate?"→ "+t.endDate:""}</p></div><div class="actions"><button class="btn secondary" id="backTrips">← Back</button>${!t.finished?`<button class="btn secondary" id="editTrip">Edit Trip</button><button class="btn danger" id="deleteTrip">Delete</button><button class="btn gold" id="finishTrip">Finish Traveling</button>`:''}</div></div>
+<div class="card panel"><div class="trip-card" style="padding:0;background:none;border:0"><div><span class="badge">${t.finished?"Finished":"Active"}</span><h2 style="margin:10px 0 5px">${esc(t.name)}</h2><p>${esc(t.destination||"")} · ${t.startDate||""} ${t.endDate?"→ "+t.endDate:""}</p></div><div class="actions"><button class="btn secondary" id="backTrips">← Back</button>${!t.finished?`<button class="btn secondary" id="editTrip" type="button">Edit Trip</button><button class="btn danger" id="deleteTrip" type="button" data-delete-trip="${t.id}">Delete</button><button class="btn gold" id="finishTrip">Finish Traveling</button>`:''}</div></div>
  <div class="budget-card card"><div><small>TRIP BUDGET</small><strong>฿${money(t.budget||0)}</strong></div><div><small>SPENT</small><strong>฿${money(total(t))}</strong></div><div class="${Number(t.budget||0)-total(t)<0?"budget-over":""}"><small>${Number(t.budget||0)-total(t)<0?"OVER BUDGET":"REMAINING"}</small><strong>฿${money((Number(t.budget||0)-total(t)))}</strong></div></div>
  <div class="section-title"><h2>Route</h2><button class="btn secondary" id="addStop">+ Add Stop</button></div><div class="timeline">${t.stops.length?t.stops.map((s,i)=>`<div class="stop route-stop ${s.reached?"reached":""}"><div class="stop-dot"></div><div><div class="stop-top"><span class="stop-number">${i+1}</span><h4>${esc(s.name)}</h4><div class="stop-tools">${!t.finished?`<button class="mini-btn" data-edit-stop="${s.id}">Edit</button><button class="mini-btn danger-text" data-delete-stop="${s.id}">Delete</button>`:""}</div></div><small>${s.date||"No planned date"} ${s.time||""}${s.reached?" · Reached "+new Date(s.reachedAt).toLocaleString():""}</small>${s.note?`<p class="muted">${esc(s.note)}</p>`:''}<div class="route-legs">${(s.legs||[]).length?(s.legs||[]).map((l,j)=>`<div class="route-leg"><span class="leg-index">${j+1}</span><div class="leg-main"><b>${esc(l.from)} → ${esc(l.to)}</b><small> ${esc(l.vehicle||"Transport")} ${l.note?"· "+esc(l.note):""}</small></div><strong>฿${money(l.price)}</strong><button class="mini-btn danger-text" data-delete-leg="${s.id}" data-leg-id="${l.id}">×</button></div>`).join(""):`<div class="leg-empty">No transport steps yet</div>`}<div class="route-leg-actions"><button class="mini-btn route-add" data-add-leg="${s.id}">＋ Add transport step</button>${routeTransportTotal(s)?`<span class="route-total">Transport ฿${money(routeTransportTotal(s))}</span>`:""}</div></div></div><div>${!t.finished&&!s.reached?`<button class="btn secondary" data-reach="${s.id}">Reached</button>`:''}</div></div>`).join(""):`<div class="empty">No route stops yet. Add your first place.</div>`}</div>
  <div class="section-title"><h2>Expenses</h2><button class="btn secondary" id="addExpense">+ Add Expense</button></div><div class="split"><div class="card panel"><div class="muted">Trip Total</div><div class="total">฿${money(total(t))}</div></div><div class="card panel"><div class="muted">Categories</div><p class="muted" style="line-height:1.8">${categorySummary(t)}</p></div></div><div class="expense-list">${t.expenses.length?t.expenses.map(e=>`<div class="expense"><div><b>${esc(e.category)}</b><small>${e.date||""} · ${esc(e.note||"")}</small></div><strong>฿${money(e.amount)}</strong></div>`).join(""):`<div class="empty">No expenses recorded yet.</div>`}</div></div>`}
@@ -222,9 +222,16 @@ document.addEventListener("click",e=>{
    save();render();toast("Trip updated")
   });return
  }
- if(e.target.id==="deleteTrip"){
-  const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;
-  if(confirm("Delete this trip and all its routes, transport steps, expenses and memories?")){db.trips=db.trips.filter(x=>x.id!==t.id);db.activeTripId=null;save();render();toast("Trip deleted")}
+ const deleteTripBtn=e.target.closest("[data-delete-trip]");
+ if(deleteTripBtn){
+  const tripId=deleteTripBtn.dataset.deleteTrip;
+  const t=db.trips.find(x=>String(x.id)===String(tripId));
+  if(!t)return;
+  if(confirm("Delete this trip and all its routes, transport steps, expenses and memories?")){
+   db.trips=db.trips.filter(x=>String(x.id)!==String(tripId));
+   if(db.activeTripId===t.id)db.activeTripId=null;
+   save();render();toast("Trip deleted");
+  }
   return
  }
  if(e.target.id==="addStop"){openFormModal("Add Route Stop",[{id:"stopName",label:"Place / stop name",type:"text",placeholder:"e.g. Terminal 21"},{id:"stopDate",label:"Planned date",type:"date",value:""},{id:"stopTime",label:"Planned time",type:"time",value:""},{id:"stopNote",label:"Note",type:"text",placeholder:"Optional note"}],vals=>{const t=db.trips.find(x=>x.id===db.activeTripId);if(!vals.stopName.trim())return toast("Place name is required");t.stops.push({id:crypto.randomUUID(),name:vals.stopName.trim(),date:vals.stopDate,time:vals.stopTime,note:vals.stopNote.trim(),reached:false});save();render();toast("Route stop added")})}
