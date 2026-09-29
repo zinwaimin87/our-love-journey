@@ -321,3 +321,7 @@ body{min-width:0;overflow-x:hidden}
 /* Trip memories + special day actions */
 .trip-memory-head{margin-top:20px}.trip-memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}.trip-memory-grid .memory-card{overflow:hidden}.special-actions{display:flex;gap:5px;align-items:center}
 @media(max-width:600px){.trip-memory-grid{grid-template-columns:repeat(2,1fr);gap:8px}.trip-memory-head{align-items:center}.trip-memory-head .btn{padding:8px 10px;font-size:10px}.special-actions{flex-direction:column;gap:2px}.special-card{grid-template-columns:38px 1fr auto;padding:10px}.special-count{display:none}}
+
+/* Maps actions */
+.map-btn{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.map-link{color:var(--cyan);text-decoration:none!important;white-space:nowrap}.map-link:hover{text-decoration:underline!important}
+@media(max-width:600px){.map-btn{font-size:10px;padding:8px 9px}.stop-tools .map-link{font-size:9px;padding:4px 5px}.trip-detail-head .actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px}.trip-detail-head .actions .btn{width:100%}}
