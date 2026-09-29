@@ -1260,3 +1260,49 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{overflow-x:hidden;-webkit-tap
 .ns-upnext,.ns-trip-info,.ns-head-map,.ns-head-progress{position:relative;z-index:1}.ns-upnext{display:flex;align-items:center;gap:8px;min-width:0}.ns-upnext .ns-head-pin{font-size:19px;filter:drop-shadow(0 0 7px rgba(83,231,255,.65))}.ns-upnext div{min-width:0;display:flex;flex-direction:column}.ns-upnext small{font-size:7px;font-weight:900;letter-spacing:2px;color:#6eeaff}.ns-upnext strong{margin-top:2px;font-size:19px;line-height:1.05;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ns-trip-info{min-width:0;display:flex;align-items:center;gap:7px;flex-wrap:wrap}.ns-head-vehicle{display:inline-flex!important;align-items:center;margin:0;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,#f4b33c,#ff6337);color:#fff;font-size:9px;font-weight:800;box-shadow:0 4px 14px rgba(255,116,49,.16);white-space:nowrap}.ns-head-route{margin:0!important;color:#d1def2;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px}.ns-head-meta{margin:0!important;color:#8fa8d0;font-size:7px;white-space:nowrap}.ns-head-map{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:31px;height:31px;display:grid;place-items:center;border-radius:10px;color:#c7f8ff;text-decoration:none;background:rgba(8,19,49,.7);border:1px solid rgba(91,221,255,.3);font-size:15px}.ns-head-progress{position:absolute;left:13px;right:48px;bottom:5px;height:2px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.ns-head-progress em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2ce8ff,#8c6cff);box-shadow:0 0 8px rgba(65,222,255,.5)}
 @media(max-width:600px){.next-stop-header{min-height:72px;padding:8px 45px 10px 11px;grid-template-columns:minmax(92px,.82fr) minmax(0,1.5fr);gap:7px;border-radius:16px}.ns-upnext .ns-head-pin{font-size:16px}.ns-upnext small{font-size:6px;letter-spacing:1.7px}.ns-upnext strong{font-size:16px}.ns-trip-info{gap:4px}.ns-head-vehicle{font-size:8px;padding:3px 7px}.ns-head-route{font-size:7px;max-width:115px}.ns-head-meta{font-size:6px}.ns-head-map{right:8px;width:29px;height:29px;font-size:13px}.ns-head-progress{left:11px;right:45px;bottom:4px}}
 @media(max-width:360px){.ns-head-route{display:none}.next-stop-header{grid-template-columns:92px 1fr}.ns-upnext strong{font-size:15px}}
+
+/* ===== NEXT STOP V3 — final mobile header ===== */
+.topbar.next-only-header{
+  height:auto!important;min-height:0!important;
+  padding:10px max(14px,env(safe-area-inset-left)) 9px!important;
+  gap:0!important;background:transparent!important;
+}
+#nextStopBar{width:100%!important;max-width:900px!important;margin:0 auto!important}
+.next-stop-v3{
+  position:relative!important;isolation:isolate!important;
+  min-height:82px!important;width:100%!important;box-sizing:border-box!important;
+  padding:10px 48px 13px 13px!important;display:flex!important;align-items:center!important;
+  border-radius:20px!important;overflow:hidden!important;
+  background:linear-gradient(110deg,rgba(7,48,78,.98),rgba(27,28,79,.98) 52%,rgba(67,28,91,.97))!important;
+  border:1px solid rgba(75,225,255,.48)!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.09),0 0 22px rgba(44,218,255,.08)!important;
+  cursor:pointer!important;
+}
+.next-stop-v3:before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 5% 20%,rgba(43,225,255,.22),transparent 34%),radial-gradient(circle at 95% 0%,rgba(161,77,255,.24),transparent 42%);
+}
+.ns3-main{min-width:0;width:100%}
+.ns3-kicker{display:flex;align-items:center;gap:6px;height:15px;color:#74ecff;font-size:8px;font-weight:900;letter-spacing:2px;line-height:1}
+.ns3-pin{font-size:15px;filter:drop-shadow(0 0 6px rgba(68,224,255,.65))}
+.ns3-kicker b{margin-left:auto;font-size:7px;letter-spacing:1px;color:rgba(226,241,255,.58);font-weight:800}
+.ns3-destination{margin-top:4px;color:#fff;font-size:22px;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 3px 14px rgba(0,0,0,.24)}
+.ns3-route{display:flex;align-items:center;gap:5px;margin-top:6px;min-width:0;color:#a9bdd9;font-size:7.5px;line-height:1;white-space:nowrap;overflow:hidden}
+.ns3-route i{font-style:normal;color:#62e7ff;font-size:10px}
+.ns3-route strong{color:#eaf9ff;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.ns3-route small{margin-left:3px;color:#8299bc;font-size:6.5px;overflow:hidden;text-overflow:ellipsis}
+.ns3-vehicle{flex:0 0 auto;padding:4px 7px;border-radius:999px;background:linear-gradient(135deg,#f4b33c,#ff6437);color:#fff;font-size:7.5px;font-weight:900;box-shadow:0 4px 12px rgba(255,104,52,.18)}
+.ns3-map{position:absolute!important;right:10px!important;top:10px!important;width:30px!important;height:30px!important;display:grid!important;place-items:center!important;border-radius:50%!important;text-decoration:none!important;color:#c9f8ff!important;background:rgba(8,19,49,.62)!important;border:1px solid rgba(93,224,255,.36)!important;font-size:13px!important;z-index:3}
+.ns3-progress{position:absolute;left:13px;right:13px;bottom:5px;height:2px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.ns3-progress em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2ce8ff,#8c6cff);box-shadow:0 0 9px rgba(65,222,255,.55)}
+@media(max-width:600px){
+  .topbar.next-only-header{padding:8px 10px 8px!important}
+  .next-stop-v3{min-height:78px!important;padding:9px 46px 12px 11px!important;border-radius:18px!important}
+  .ns3-kicker{font-size:7px;letter-spacing:1.8px}.ns3-pin{font-size:14px}
+  .ns3-kicker b{font-size:6.5px}.ns3-destination{font-size:21px}
+  .ns3-route{margin-top:5px;font-size:7px}.ns3-route small{font-size:6px}
+  .ns3-vehicle{font-size:7px;padding:4px 6px}.ns3-map{right:8px!important;top:8px!important;width:28px!important;height:28px!important}
+}
+@media(max-width:360px){
+  .next-stop-v3{min-height:76px!important}.ns3-destination{font-size:19px}.ns3-route>span:not(.ns3-vehicle),.ns3-route>strong{max-width:74px}
+}
