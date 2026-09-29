@@ -109,23 +109,37 @@ function transportLabel(mode){return mode||"Route";}
 function updateNextStopBar(){
  const el=document.getElementById("nextStopBar"); if(!el)return;
  const t=db.trips.find(x=>x.id===db.activeTripId&&!x.finished);
- const stops=t?.stops||[],next=stops.find(x=>!x.reached);
- if(!t||!next){el.innerHTML="";el.classList.remove("has-next-stop");return}
+ const stops=t?.stops||[];
+ if(!t||!stops.length){el.innerHTML="";el.classList.remove("has-next-stop");return}
+ const firstOpen=stops.findIndex(x=>!x.reached);
+ if(firstOpen<0){el.innerHTML="";el.classList.remove("has-next-stop");return}
  el.classList.add("has-next-stop");
- const reached=stops.filter(x=>x.reached),current=reached.length?reached[reached.length-1]:null;
- const mode=String(next.transportMode||"");
- const leg=(next.legs||[])[0];
- const from=leg?.from||(current?.name||t.destination||"Current");
- const to=leg?.to||next.name;
+
+ // Treat the first saved stop as the starting point. The header shows
+ // the current point -> the next destination, then advances after that
+ // destination is marked reached.
+ const fromStop=stops[firstOpen]||null;
+ const toStop=stops[firstOpen+1]||null;
+ const from=fromStop?.name||t.destination||"Current";
+ const to=toStop?.name||fromStop?.name||t.destination||"Next Stop";
+ const leg=(fromStop?.legs||[])[0]||(toStop?.legs||[])[0]||null;
+ const mode=String(leg?.vehicle||toStop?.transportMode||fromStop?.transportMode||"");
  const icon=transportIcon(mode),label=transportLabel(mode);
- const idx=stops.findIndex(x=>x.id===next.id);
- const pct=stops.length?Math.max(8,Math.round(((idx+1)/stops.length)*100)):8;
- const planned=(next.date||next.time) ? ((next.date?esc(next.date):"")+(next.time?" · "+esc(next.time):"")) : "Planned";
+ const segmentNo=Math.min(firstOpen+1,stops.length);
+ const pct=stops.length?Math.round((segmentNo/stops.length)*100):100;
+ const planned=(toStop?.date||toStop?.time)
+   ? ((toStop?.date?esc(toStop.date):"")+(toStop?.time?" · "+esc(toStop.time):""))
+   : "Next Destination";
+ const nodes=stops.map((st,i)=>{
+   const cls=i<firstOpen?"done":i===firstOpen?"current":i===firstOpen+1?"next":"pending";
+   return '<span class="ns3-node '+cls+'"><i></i><b>'+esc(st.name||("Stop "+(i+1)))+'</b></span>';
+ }).join("");
  el.innerHTML='<div class="next-stop-v3" data-page="travel">'+
    '<div class="ns3-main">'+
-     '<div class="ns3-kicker"><span class="ns3-pin">📍</span><span>NEXT STOP</span><b>STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</b></div>'+
-     '<div class="ns3-destination">'+esc(to)+'</div>'+
-     '<div class="ns3-route"><span class="ns3-vehicle">'+icon+' '+esc(label)+'</span><span class="ns3-state">'+esc(planned)+'</span><span class="ns3-from">From '+esc(from)+'</span></div>'+
+     '<div class="ns3-kicker"><span class="ns3-pin">📍</span><span>NEXT STOP</span><b>STOP '+String(segmentNo).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</b></div>'+
+     '<div class="ns3-destination"><strong>'+esc(from)+'</strong><span>➜</span><strong>'+esc(to)+'</strong></div>'+
+     '<div class="ns3-route"><span class="ns3-vehicle">'+icon+' '+esc(label)+'</span><span class="ns3-state">'+esc(planned)+'</span></div>'+
+     '<div class="ns3-track">'+nodes+'</div>'+
    '</div>'+
    '<a class="ns3-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
    '<div class="ns3-progress"><em style="width:'+pct+'%"></em></div>'+
