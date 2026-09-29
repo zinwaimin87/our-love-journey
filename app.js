@@ -747,6 +747,6 @@ document.addEventListener("click",e=>{
  if(e.target.id==="addExpense"){openFormModal("Add Expense",[{id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food","Hotel","Tickets","Souvenir / Shopping","Other"]},{id:"amount",label:"Amount (THB)",type:"number",placeholder:"0"},{id:"date",label:"Date",type:"date",value:new Date().toISOString().slice(0,10)},{id:"note",label:"Note",type:"text",placeholder:"e.g. Lunch"}],vals=>{const t=db.trips.find(x=>x.id===db.activeTripId),amount=Number(vals.amount);if(!amount||amount<0)return toast("Enter a valid amount");t.expenses.push({id:crypto.randomUUID(),category:vals.category,amount,date:vals.date,note:vals.note.trim()});save();render();toast("Expense saved")})}
  if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=null;save();go("history");toast("Journey archived")}}
 });
-window.addEventListener("hashchange",render);render();
+window.render=render;window.addEventListener("hashchange",render);render();
 // PWA install helper
 let deferredInstallPrompt=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e});window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;toast("Installed ♡")});async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null}else toast("Chrome ⋮ → Add to Home screen")}
