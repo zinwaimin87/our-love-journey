@@ -39,6 +39,16 @@ function go(p){location.hash=p}
 function setup3D(){
  document.querySelectorAll(".card,.timebox,.btn").forEach(el=>{if(el.dataset.tilt)return;el.dataset.tilt="1";el.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(700px) rotateX(${(-y*4).toFixed(2)}deg) rotateY(${(x*5).toFixed(2)}deg) translateZ(2px)`});el.addEventListener("pointerleave",()=>{el.style.transform=""})})
 }
+function updateNextStopBar(){
+ const el=document.getElementById("nextStopBar"); if(!el)return;
+ const t=db.trips.find(x=>x.id===db.activeTripId&&!x.finished);
+ if(!t){el.innerHTML='<div class="next-stop-inner idle"><span class="ns-orb">✦</span><div><small>NEXT STOP</small><b>Start a journey to see your route</b></div></div>';return}
+ const stops=t.stops||[],reached=stops.filter(s=>s.reached),next=stops.find(s=>!s.reached),current=reached.length?reached[reached.length-1]:null;
+ if(!next){el.innerHTML='<div class="next-stop-inner complete"><span class="ns-orb">✓</span><div><small>JOURNEY COMPLETE</small><b>'+esc(current?.name||t.name)+'</b><i>All stops reached</i></div></div>';return}
+ const currentText=current?'CURRENT · '+esc(current.name):'CURRENT · NOT STARTED';
+ const timing=(next.date?esc(next.date):'Planned')+(next.time?' · '+esc(next.time):'');
+ el.innerHTML='<div class="next-stop-inner"><span class="ns-orb">➜</span><div class="ns-route"><small>'+currentText+'</small><b>Next Stop · '+esc(next.name)+'</b><i>'+timing+'</i></div></div>';
+}
 function render(){
  const p=pageName(),app=document.getElementById("app");
  if(!app)return;
@@ -46,6 +56,7 @@ function render(){
  try{
    if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="calendar")calendar(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
+   updateNextStopBar();
  }catch(e){
    console.error("Love Journey render error",e);
    app.innerHTML=`<section class="card panel" style="margin-top:20px"><div class="eyebrow">OUR LOVE JOURNEY</div><h1>Welcome back ♡</h1><p class="muted">The page recovered from an old saved-data format. Your saved information is being kept safe.</p><button class="btn" onclick="location.hash='home';render()">Open Home</button></section>`;
