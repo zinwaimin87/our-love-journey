@@ -1,4 +1,3 @@
-// Vercel sync trigger: 2026-09-29-expense-page
 const KEY="our-love-journey-v2";
 const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
 
@@ -35,13 +34,6 @@ function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
 function toast(t){const x=document.getElementById("toast");if(!x)return;x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
 function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
-let deferredInstallPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;document.documentElement.classList.add("install-available");});
-window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;document.documentElement.classList.remove("install-available");toast("Our Love Journey installed ♡");});
-async function installApp(){
- if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return}
- toast("Chrome menu → Add to Home screen ကိုရွေးပါ");
-}
 function pageName(){return location.hash.slice(1)||"home"}
 function go(p){location.hash=p}
 function setup3D(){
@@ -86,7 +78,7 @@ function render(){
  if(!app)return;
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
  try{
-   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="expense")expensePage(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
+   if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="calendar")calendar(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
    updateNextStopBar();
  }catch(e){
@@ -123,7 +115,7 @@ function homeSmartCards(){
  const h=homeUpcoming(), progress=h.active?tripProgress(h.active):0,tc=tripCountdown(h.nextTrip);
  const tripSub=h.nextTrip?(tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m":"Planned"):"Plan your next journey";
  return `<div class="smart-home-grid home-dashboard">
-  <button class="smart-card card" data-page="anniversary"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
+  <button class="smart-card card" data-page="calendar"><span>♡</span><div><small>UPCOMING ANNIVERSARY</small><b>${h.ann?daysUntil(h.ann)+" days":"Not set"}</b><p>${h.ann?esc(new Date(h.ann).toLocaleDateString()):"Add anniversary date"}</p></div><em>›</em></button>
   <button class="smart-card card trip-countdown-card" data-page="travel"><span>✈</span><div><small>UPCOMING TRIP</small><b>${h.nextTrip?esc(h.nextTrip.name):"No trip yet"}</b><p id="homeTripCountdown">${tripSub}</p></div><em>›</em></button><button class="smart-card card" data-page="travel"><span>📍</span><div><small>NEXT STOP</small><b>${h.nextStop?esc(h.nextStop.name):h.active?"All stops reached":"No active trip"}</b><p>${h.nextStop?(h.nextStop.date||"Planned stop"):h.active?"Journey complete":"Start a journey"}</p></div><em>›</em></button>
   <button class="smart-card card" data-page="memories"><span>📸</span><div><small>TOTAL MEMORIES</small><b>${h.memoryCount}</b><p>saved moments</p></div><em>›</em></button>
   <button class="smart-card card" data-page="travel"><span>฿</span><div><small>TOTAL TRAVEL SPENDING</small><b>฿${money(h.spend)}</b><p>all saved journeys</p></div><em>›</em></button>
@@ -367,7 +359,7 @@ function finishedTripDetail(t){
 function settings(a){
  const p=db.profile;
  a.innerHTML=shellHead("Settings","Private, simple and stored on this device.")+`<div class="card panel"><h2>Couple Profile</h2><div class="form-grid"><div class="field"><label>First name</label><input id="sn1" value="${esc(p.name1)}"></div><div class="field"><label>Second name</label><input id="sn2" value="${esc(p.name2)}"></div><div class="field"><label>Anniversary date</label><input id="sd2" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveSet">Save Changes</button></div></div>
- <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div><button class="btn install-app-btn" id="installAppBtn" type="button">⬇ Install Our Love Journey</button>`;
+ <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div>`;
  document.getElementById("saveSet").onclick=()=>{db.profile.name1=document.getElementById("sn1").value.trim();db.profile.name2=document.getElementById("sn2").value.trim();db.profile.startDate=document.getElementById("sd2").value;save();toast("Settings saved")}
  document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup.json";a.click();URL.revokeObjectURL(u)}
  document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
@@ -553,4 +545,5 @@ document.addEventListener("click",e=>{
 window.addEventListener("hashchange",render);render();
  const refreshTripCountdown=()=>{const h=homeUpcoming(),el=document.getElementById("homeTripCountdown");if(!el)return;const tc=tripCountdown(h.nextTrip);el.textContent=!h.nextTrip?"Plan your next journey":tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m "+tc.seconds+"s":"Planned"};clearInterval(window.__homeTripTimer);refreshTripCountdown();window.__homeTripTimer=setInterval(refreshTripCountdown,1000);
 
-window.addEventListener("error",e=>{const app=document.getElementById("app");if(app&&e.error){console.error("Boot/runtime error",e.error);}});
+// PWA install helper
+let deferredInstallPrompt=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e});window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;toast("Installed ♡")});async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null}else toast("Chrome ⋮ → Add to Home screen")}
