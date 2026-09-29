@@ -873,3 +873,27 @@ body{min-width:0;overflow-x:hidden}
 .trip-countdown-card p{color:#73eaff!important;font-weight:700;letter-spacing:.2px}
 .trip-countdown-card>span{animation:vehicleFloat 2.6s ease-in-out infinite}
 @media(max-width:720px){.trip-countdown-card p{font-size:8px}}
+
+/* Route stop 3-stage status */
+.stop-status{display:flex;align-items:center;gap:6px;margin:10px 0 4px;padding:8px 10px;border:1px solid rgba(80,220,255,.16);border-radius:14px;background:rgba(8,20,52,.45);width:max-content;max-width:100%;font-size:10px;font-weight:700;letter-spacing:.4px}
+.status-step{display:inline-flex;align-items:center;gap:4px;color:#6f7896;white-space:nowrap}
+.status-step i{font-style:normal;font-size:11px}
+.status-step.current{color:#73eaff}
+.status-step.done{color:#8df6cf}
+.status-line{width:18px;height:2px;background:rgba(120,140,190,.25);border-radius:99px}
+.status-line.done{background:#46e6ff;box-shadow:0 0 8px rgba(70,230,255,.35)}
+.stop-status-badge{display:inline-flex;align-items:center;margin-left:8px;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.35px;vertical-align:middle}
+.stop-status-badge.planned{color:#9ba8c8;background:rgba(120,140,190,.12);border:1px solid rgba(120,140,190,.22)}
+.stop-status-badge.reached{color:#73eaff;background:rgba(50,210,255,.12);border:1px solid rgba(50,210,255,.28)}
+.stop-status-badge.completed{color:#8df6cf;background:rgba(70,240,180,.12);border:1px solid rgba(70,240,180,.28)}
+.route-stop.stop-reached{border-color:rgba(70,220,255,.3)}
+.route-stop.stop-completed{border-color:rgba(70,240,180,.3)}
+.stop-status-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.completed-note{display:inline-flex;align-items:center;padding:9px 12px;border-radius:12px;color:#8df6cf;font-size:12px;font-weight:700;background:rgba(70,240,180,.08);border:1px solid rgba(70,240,180,.2)}
+@media(max-width:720px){
+ .stop-status{width:100%;justify-content:space-between;gap:3px;font-size:8px;padding:7px 8px}
+ .status-line{flex:1;min-width:8px}
+ .stop-status-badge{margin-left:4px;font-size:8px;padding:3px 7px}
+ .stop-status-actions{justify-content:flex-start}
+ .stop-status-actions .btn{flex:1;min-width:130px}
+}
