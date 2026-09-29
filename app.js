@@ -118,13 +118,17 @@ function updateNextStopBar(){
  const from=leg?.from||(current?.name||t.destination||"Current");
  const to=leg?.to||next.name;
  const icon=transportIcon(mode),label=transportLabel(mode);
- const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
- const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round((idx/stops.length)*100):0;
- el.innerHTML='<div class="next-stop-header" data-page="travel">'+
-   '<div class="ns-upnext"><span class="ns-head-pin">📍</span><div><small>UP NEXT</small><strong>'+esc(to)+'</strong></div></div>'+
-   '<div class="ns-trip-info"><span class="ns-head-vehicle">'+icon+' '+esc(label)+'</span><span class="ns-head-route">'+esc(from)+' → '+esc(to)+'</span><span class="ns-head-meta">STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+(timing?" · "+timing:"")+'</span></div>'+
-   '<a class="ns-head-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
-   '<i class="ns-head-progress"><em style="width:'+Math.max(6,progress)+'%"></em></i>'+
+ const idx=stops.findIndex(x=>x.id===next.id);
+ const pct=stops.length?Math.max(8,Math.round(((idx+1)/stops.length)*100)):8;
+ const planned=(next.date||next.time) ? ((next.date?esc(next.date):"")+(next.time?" · "+esc(next.time):"")) : "Planned";
+ el.innerHTML='<div class="next-stop-v3" data-page="travel">'+
+   '<div class="ns3-main">'+
+     '<div class="ns3-kicker"><span class="ns3-pin">📍</span><span>NEXT STOP</span><b>STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+'</b></div>'+
+     '<div class="ns3-destination">'+esc(to)+'</div>'+
+     '<div class="ns3-route"><span class="ns3-vehicle">'+icon+' '+esc(label)+'</span><span>'+esc(from)+'</span><i>→</i><strong>'+esc(to)+'</strong><small>'+planned+'</small></div>'+
+   '</div>'+
+   '<a class="ns3-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
+   '<div class="ns3-progress"><em style="width:'+pct+'%"></em></div>'+
  '</div>';
 }
 function render(){
