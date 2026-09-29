@@ -352,11 +352,13 @@ document.addEventListener("click",e=>{
  openFormModal("Edit Route Stop",[
   {id:"stopName",label:"Place / stop name",type:"text",value:s.name},
   {id:"stopDate",label:"Planned date",type:"date",value:s.date||""},
-  {id:"stopTime",label:"Planned time",type:"time",value:s.time||""},\n  {id:"transportMode",label:"How will you travel?",type:"select",options:["","Car","Motorcycle","Bus","Minivan","Taxi","Train","Boat","BTS","MRT","Flight","Walk","Other"]},
+  {id:"stopTime",label:"Planned time",type:"time",value:s.time||""},
+  {id:"transportMode",label:"How will you travel?",type:"select",options:["","Car","Motorcycle","Bus","Minivan","Taxi","Train","Boat","BTS","MRT","Flight","Walk","Other"]},
   {id:"stopNote",label:"Note",type:"text",value:s.note||"",placeholder:"Optional note"},
   {id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",value:s.price>0?String(s.price):"",placeholder:"e.g. 50"}
- ],vals=>{if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice);if(price<0||Number.isNaN(price))return toast("Enter a valid price");s.name=vals.stopName.trim();s.date=vals.stopDate;s.time=vals.stopTime;s.transportMode=vals.transportMode;s.note=vals.stopNote.trim();s.price=price;save();render();toast("Route stop updated")});return}
- const tm=document.getElementById("mf_transportMode");if(tm)tm.value=s.transportMode||"";return} const moveStop=e.target.closest("[data-move-stop]");
+ ],vals=>{if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice);if(price<0||Number.isNaN(price))return toast("Enter a valid price");s.name=vals.stopName.trim();s.date=vals.stopDate;s.time=vals.stopTime;s.transportMode=vals.transportMode;s.note=vals.stopNote.trim();s.price=price;save();render();toast("Route stop updated")});
+ const tm=document.getElementById("mf_transportMode");if(tm)tm.value=s.transportMode||"";return}
+ const moveStop=e.target.closest("[data-move-stop]");
  if(moveStop){
   const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;
   const idx=t.stops.findIndex(s=>String(s.id)===String(moveStop.dataset.moveStop));
@@ -427,7 +429,14 @@ document.addEventListener("click",e=>{
   }
   return
  }
- if(e.target.id==="addStop"){openFormModal("Add Route Stop",[{id:"stopName",label:"Place / stop name",type:"text",placeholder:"e.g. Terminal 21"},{id:"stopDate",label:"Planned date",type:"date",value:""},{id:"stopTime",label:"Planned time",type:"time",value:""},{id:"stopNote",label:"Note",type:"text",placeholder:"Optional note"},{id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",placeholder:"e.g. 50"}],vals=>{const t=db.trips.find(x=>x.id===db.activeTripId);if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice||0);if(price<0||Number.isNaN(price))return toast("Enter a valid price");t.stops.push({id:crypto.randomUUID(),name:vals.stopName.trim(),date:vals.stopDate,time:vals.stopTime,note:vals.stopNote.trim(),price,reached:false,legs:[]});save();render();toast("Route stop added")})}
+ if(e.target.id==="addStop"){openFormModal("Add Route Stop",[
+ {id:"stopName",label:"Place / stop name",type:"text",placeholder:"e.g. Terminal 21"},
+ {id:"stopDate",label:"Planned date",type:"date",value:""},
+ {id:"stopTime",label:"Planned time",type:"time",value:""},
+ {id:"transportMode",label:"How will you travel?",type:"select",options:["","Car","Motorcycle","Bus","Minivan","Taxi","Train","Boat","BTS","MRT","Flight","Walk","Other"]},
+ {id:"stopNote",label:"Note",type:"text",placeholder:"Optional note"},
+ {id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",placeholder:"e.g. 50"}
+ ],vals=>{const t=db.trips.find(x=>x.id===db.activeTripId);if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice||0);if(price<0||Number.isNaN(price))return toast("Enter a valid price");t.stops.push({id:crypto.randomUUID(),name:vals.stopName.trim(),date:vals.stopDate,time:vals.stopTime,transportMode:vals.transportMode,note:vals.stopNote.trim(),price,reached:false,legs:[]});save();render();toast("Route stop added")})}
  if(e.target.id==="addExpense"){openFormModal("Add Expense",[{id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food","Hotel","Tickets","Souvenir / Shopping","Other"]},{id:"amount",label:"Amount (THB)",type:"number",placeholder:"0"},{id:"date",label:"Date",type:"date",value:new Date().toISOString().slice(0,10)},{id:"note",label:"Note",type:"text",placeholder:"e.g. Lunch"}],vals=>{const t=db.trips.find(x=>x.id===db.activeTripId),amount=Number(vals.amount);if(!amount||amount<0)return toast("Enter a valid amount");t.expenses.push({id:crypto.randomUUID(),category:vals.category,amount,date:vals.date,note:vals.note.trim()});save();render();toast("Expense saved")})}
  if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=null;save();go("history");toast("Journey archived")}}
 });
