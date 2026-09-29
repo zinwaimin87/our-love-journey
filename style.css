@@ -375,3 +375,36 @@ body{min-width:0;overflow-x:hidden}
 .ns-arrow{position:relative;z-index:1;margin-left:auto;font-size:20px;color:#7ff3ff;text-shadow:0 0 14px rgba(57,231,255,.7);animation:nextStopArrow 1.7s ease-in-out infinite}
 @keyframes nextStopArrow{50%{transform:translateX(5px) translateZ(8px);opacity:.75}}
 @media(max-width:720px){.ns-vehicle{font-size:14px!important}.ns-arrow{font-size:16px}}
+
+/* Compact couple hero + stronger 3D next-stop route */
+.hero-card{min-height:0;padding:26px 30px}
+.hero h1{font-size:clamp(34px,5.2vw,58px);margin:7px 0}
+.countdown{grid-template-columns:repeat(6,1fr);gap:8px;margin-top:16px}
+.timebox{padding:11px 7px;border-radius:13px}
+.timebox b{font-size:22px}
+.timebox small{font-size:8px}
+.hero-card .actions{margin-top:15px}
+.next-stop-inner{min-height:48px}
+.ns-route b{font-size:12px}
+.ns-route i{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:310px}
+.ns-map{position:relative;z-index:2;flex:none;padding:6px 8px;border-radius:9px;border:1px solid rgba(57,231,255,.3);color:#8cefff;text-decoration:none;font-size:8px;font-weight:800;background:rgba(0,200,255,.08)}
+@media(max-width:720px){
+ .hero-card{padding:18px 14px;border-radius:22px}
+ .hero h1{font-size:32px;margin:4px 0}
+ .countdown{grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+ .timebox{padding:9px 4px;border-radius:11px}
+ .timebox b{font-size:19px}
+ .timebox small{font-size:7px;letter-spacing:.7px}
+ .hero-card .actions{margin-top:12px}
+ .hero-card .btn{padding:9px 12px;font-size:11px}
+ .next-stop-inner{padding:6px 7px}
+ .ns-route b{font-size:9px}
+ .ns-route i{font-size:7px;max-width:210px}
+ .ns-map{font-size:7px;padding:5px 6px}
+}
+@media(max-width:390px){
+ .hero h1{font-size:28px}
+ .hero-card{padding:15px 11px}
+ .ns-route i{max-width:155px}
+ .ns-map{display:none}
+}
