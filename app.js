@@ -1,3 +1,4 @@
+// Vercel sync trigger: 2026-09-29-expense-page
 const KEY="our-love-journey-v2";
 const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
 
