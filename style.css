@@ -264,3 +264,15 @@ body{min-width:0;overflow-x:hidden}
     padding-right:13px!important;
   }
 }
+
+/* === HISTORY TRIP ACTIONS === */
+.history-trip-actions{margin-top:0;justify-content:flex-end;align-items:center}
+.history-trip-actions .btn{white-space:nowrap}
+@media(max-width:820px){
+  .history-trip-actions{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+  .history-trip-actions .btn{width:100%;min-width:0;padding:10px 8px;font-size:11px}
+}
+@media(max-width:380px){
+  .history-trip-actions{gap:5px}
+  .history-trip-actions .btn{padding:9px 5px;font-size:10px}
+}
