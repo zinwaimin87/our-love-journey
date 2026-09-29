@@ -11,7 +11,7 @@ function normalizeData(raw){
   d.trips=d.trips.map(t=>({
     id:t?.id||uid(),name:String(t?.name||"Untitled Trip"),destination:String(t?.destination||""),
     startDate:String(t?.startDate||""),endDate:String(t?.endDate||""),budget:Number(t?.budget||0),
-    stops:Array.isArray(t?.stops)?t.stops.map(s=>({...s,price:Number(s?.price||0),legs:Array.isArray(s?.legs)?s.legs:[]})):[],expenses:Array.isArray(t?.expenses)?t.expenses:[],
+    stops:Array.isArray(t?.stops)?t.stops.map(s=>({...s,price:Number(s?.price||0),transportMode:String(s?.transportMode||""),legs:Array.isArray(s?.legs)?s.legs:[]})):[],expenses:Array.isArray(t?.expenses)?t.expenses:[],
     memories:Array.isArray(t?.memories)?t.memories:[],finished:!!t?.finished,
     createdAt:t?.createdAt||new Date().toISOString(),finishedAt:t?.finishedAt||null
   }));
@@ -39,6 +39,11 @@ function go(p){location.hash=p}
 function setup3D(){
  document.querySelectorAll(".card,.timebox,.btn").forEach(el=>{if(el.dataset.tilt)return;el.dataset.tilt="1";el.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(700px) rotateX(${(-y*4).toFixed(2)}deg) rotateY(${(x*5).toFixed(2)}deg) translateZ(2px)`});el.addEventListener("pointerleave",()=>{el.style.transform=""})})
 }
+function transportIcon(mode){
+ const m=String(mode||"").toLowerCase();
+ return m==="car"?"🚗":m==="motorcycle"?"🏍️":m==="train"?"🚆":m==="boat"?"⛴️":m==="bus"?"🚌":m==="minivan"?"🚐":m==="taxi"?"🚕":m==="flight"?"✈️":m==="bts"?"🚇":m==="mrt"?"🚇":m==="walk"?"🚶":"➜";
+}
+function transportLabel(mode){return mode||"Route";}
 function updateNextStopBar(){
  const el=document.getElementById("nextStopBar"); if(!el)return;
  const t=db.trips.find(x=>x.id===db.activeTripId&&!x.finished);
@@ -47,7 +52,8 @@ function updateNextStopBar(){
  if(!next){el.innerHTML='<div class="next-stop-inner complete"><span class="ns-orb">✓</span><div><small>JOURNEY COMPLETE</small><b>'+esc(current?.name||t.name)+'</b><i>All stops reached</i></div></div>';return}
  const currentText=current?'CURRENT · '+esc(current.name):'CURRENT · NOT STARTED';
  const timing=(next.date?esc(next.date):'Planned')+(next.time?' · '+esc(next.time):'');
- el.innerHTML='<div class="next-stop-inner"><span class="ns-orb">➜</span><div class="ns-route"><small>'+currentText+'</small><b>Next Stop · '+esc(next.name)+'</b><i>'+timing+'</i></div></div>';
+ const mode=transportLabel(next.transportMode);
+ el.innerHTML='<div class="next-stop-inner"><span class="ns-orb ns-vehicle">'+transportIcon(next.transportMode)+'</span><div class="ns-route"><small>'+currentText+'</small><b>Next Stop · '+esc(next.name)+'</b><i>'+transportIcon(next.transportMode)+' '+esc(mode)+(timing?' · '+timing:'')+'</i></div><span class="ns-arrow">→</span></div>';
 }
 function render(){
  const p=pageName(),app=document.getElementById("app");
@@ -346,11 +352,11 @@ document.addEventListener("click",e=>{
  openFormModal("Edit Route Stop",[
   {id:"stopName",label:"Place / stop name",type:"text",value:s.name},
   {id:"stopDate",label:"Planned date",type:"date",value:s.date||""},
-  {id:"stopTime",label:"Planned time",type:"time",value:s.time||""},
+  {id:"stopTime",label:"Planned time",type:"time",value:s.time||""},\n  {id:"transportMode",label:"How will you travel?",type:"select",options:["","Car","Motorcycle","Bus","Minivan","Taxi","Train","Boat","BTS","MRT","Flight","Walk","Other"]},
   {id:"stopNote",label:"Note",type:"text",value:s.note||"",placeholder:"Optional note"},
   {id:"stopPrice",label:"Place / Stop Price (THB)",type:"number",value:s.price>0?String(s.price):"",placeholder:"e.g. 50"}
- ],vals=>{if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice);if(price<0||Number.isNaN(price))return toast("Enter a valid price");s.name=vals.stopName.trim();s.date=vals.stopDate;s.time=vals.stopTime;s.note=vals.stopNote.trim();s.price=price;save();render();toast("Route stop updated")});return}
- const moveStop=e.target.closest("[data-move-stop]");
+ ],vals=>{if(!vals.stopName.trim())return toast("Place name is required");const price=Number(vals.stopPrice);if(price<0||Number.isNaN(price))return toast("Enter a valid price");s.name=vals.stopName.trim();s.date=vals.stopDate;s.time=vals.stopTime;s.transportMode=vals.transportMode;s.note=vals.stopNote.trim();s.price=price;save();render();toast("Route stop updated")});return}
+ const tm=document.getElementById("mf_transportMode");if(tm)tm.value=s.transportMode||"";return} const moveStop=e.target.closest("[data-move-stop]");
  if(moveStop){
   const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;
   const idx=t.stops.findIndex(s=>String(s.id)===String(moveStop.dataset.moveStop));
