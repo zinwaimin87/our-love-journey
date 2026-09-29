@@ -52,14 +52,16 @@ function transportLabel(mode){return mode||"Route";}
 function updateNextStopBar(){
  const el=document.getElementById("nextStopBar"); if(!el)return;
  const t=db.trips.find(x=>x.id===db.activeTripId&&!x.finished);
- if(!t){el.innerHTML='<div class="next-stop-inner idle"><span class="ns-orb">✦</span><div><small>NEXT STOP</small><b>Start a journey to see your route</b></div></div>';return}
- const stops=t.stops||[],reached=stops.filter(s=>s.reached),next=stops.find(s=>!s.reached),current=reached.length?reached[reached.length-1]:null;
- if(!next){el.innerHTML='<div class="next-stop-inner complete"><span class="ns-orb">✓</span><div><small>JOURNEY COMPLETE</small><b>'+esc(current?.name||t.name)+'</b><i>All stops reached</i></div></div>';return}
+ const stops=t?.stops||[],next=stops.find(s=>!s.reached);
+ // Show the top bar only when there is an active trip with an actual next route stop.
+ if(!t||!next){el.innerHTML="";el.classList.remove("has-next-stop");return}
+ el.classList.add("has-next-stop");
+ const reached=stops.filter(s=>s.reached),current=reached.length?reached[reached.length-1]:null;
  const mode=String(next.transportMode||"");
  const leg=(next.legs||[])[0];
  const from=leg?.from||(current?.name||t.destination||"Current");
  const to=leg?.to||next.name;
- const icon=transportIcon(mode), label=transportLabel(mode);
+ const icon=transportIcon(mode),label=transportLabel(mode);
  const isTrain=["train","bts","mrt"].includes(mode.toLowerCase());
  const routeText=isTrain?("Board · "+from+"  →  Get off · "+to):("Route · "+from+"  →  "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
