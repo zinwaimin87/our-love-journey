@@ -122,11 +122,11 @@ function updateNextStopBar(){
  const routeText=isTransit?("Board · "+from+" → Get off · "+to):(from+" → "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
  const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round(((idx)/stops.length)*100):0;
- el.innerHTML='<div class="next-stop-live" data-page="travel">'+
-   '<div class="ns-live-icon">'+icon+'</div>'+
+ el.innerHTML='<div class="next-stop-live next-stop-premium" data-page="travel">'+
+   '<div class="ns-live-icon ns-premium-icon">'+icon+'</div>'+
    '<div class="ns-live-main"><div class="ns-live-kicker"><span>LIVE JOURNEY</span><b>NEXT STOP</b></div>'+
    '<strong>'+esc(to)+'</strong><small>'+esc(label)+' · STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+(timing?" · "+timing:"")+'</small>'+
-   '<i><em style="width:'+progress+'%"></em></i></div>'+
+   '<i><em style="width:'+Math.max(6,progress)+'%"></em></i></div>'+
    '<a class="ns-live-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
  '</div>';
 }
