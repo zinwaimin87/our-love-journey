@@ -1,36 +1,88 @@
 const KEY="our-love-journey-v2";
-const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[]};
+const blank={profile:{name1:"",name2:"",startDate:""},trips:[],activeTripId:null,memories:[],specialDays:[]};
 
 function normalizeData(raw){
   const d=raw&&typeof raw==="object"?raw:{};
   d.profile=d.profile&&typeof d.profile==="object"?d.profile:{};
-  d.profile.name1=String(d.profile.name1||"");
-  d.profile.name2=String(d.profile.name2||"");
-  d.profile.startDate=String(d.profile.startDate||"");
+  d.profile.name1=String(d.profile.name1||"").slice(0,120);
+  d.profile.name2=String(d.profile.name2||"").slice(0,120);
+  d.profile.startDate=/^\d{4}-\d{2}-\d{2}$/.test(String(d.profile.startDate||""))?String(d.profile.startDate):"";
   d.trips=Array.isArray(d.trips)?d.trips:[];
-  d.trips=d.trips.map(t=>({
-    id:t?.id||uid(),name:String(t?.name||"Untitled Trip"),destination:String(t?.destination||""),
-    startDate:String(t?.startDate||""),endDate:String(t?.endDate||""),budget:Number(t?.budget||0),
-    stops:Array.isArray(t?.stops)?t.stops.map(s=>({...s,price:Number(s?.price||0),transportMode:String(s?.transportMode||""),completed:!!s?.completed,completedAt:s?.completedAt||null,lat:Number.isFinite(Number(s?.lat))?Number(s.lat):null,lng:Number.isFinite(Number(s?.lng))?Number(s.lng):null,reached:!!s?.reached,reachedAt:s?.reachedAt||null,legs:Array.isArray(s?.legs)?s.legs:[]})):[],expenses:Array.isArray(t?.expenses)?t.expenses:[],
-    memories:Array.isArray(t?.memories)?t.memories:[],cover:String(t?.cover||""),finished:!!t?.finished,
-    createdAt:t?.createdAt||new Date().toISOString(),finishedAt:t?.finishedAt||null
-  }));
-  d.activeTripId=d.trips.some(t=>t.id===d.activeTripId)?d.activeTripId:null;
+  d.trips=d.trips.map(t=>{
+    const stops=Array.isArray(t?.stops)?t.stops.map(s=>({
+      ...s,id:s?.id||uid(),name:String(s?.name||"Untitled Stop").slice(0,180),
+      price:Number.isFinite(Number(s?.price))?Math.max(0,Number(s.price)):0,
+      transportMode:String(s?.transportMode||""),completed:!!s?.completed,completedAt:s?.completedAt||null,
+      lat:Number.isFinite(Number(s?.lat))?Number(s.lat):null,lng:Number.isFinite(Number(s?.lng))?Number(s.lng):null,
+      reached:!!s?.reached,reachedAt:s?.reachedAt||null,
+      legs:Array.isArray(s?.legs)?s.legs.map(l=>({...l,id:l?.id||uid(),from:String(l?.from||""),to:String(l?.to||""),vehicle:String(l?.vehicle||"Other"),price:Number.isFinite(Number(l?.price))?Math.max(0,Number(l.price)):0,note:String(l?.note||"").slice(0,500)})):[],
+      memories:Array.isArray(s?.memories)?s.memories:[]
+    })):[];
+
+    const expenses=Array.isArray(t?.expenses)?t.expenses.map(e=>({
+      ...e,id:e?.id||uid(),category:String(e?.category||"Other"),
+      amount:Number.isFinite(Number(e?.amount))?Math.max(0,Number(e.amount)):0,
+      date:/^\d{4}-\d{2}-\d{2}$/.test(String(e?.date||""))?String(e.date):"",
+      note:String(e?.note||"").slice(0,500)
+    })):[];
+    return {
+      id:t?.id||uid(),name:String(t?.name||"Untitled Trip").slice(0,180),destination:String(t?.destination||"").slice(0,180),
+      startDate:/^\d{4}-\d{2}-\d{2}$/.test(String(t?.startDate||""))?String(t.startDate):"",
+      endDate:/^\d{4}-\d{2}-\d{2}$/.test(String(t?.endDate||""))?String(t.endDate):"",
+      budget:Number.isFinite(Number(t?.budget))?Math.max(0,Number(t.budget)):0,
+      stops,expenses,memories:Array.isArray(t?.memories)?t.memories:[],cover:String(t?.cover||""),
+      finished:!!t?.finished,createdAt:t?.createdAt||new Date().toISOString(),finishedAt:t?.finishedAt||null,
+      updatedAt:t?.updatedAt||t?.createdAt||Date.now()
+    };
+  });
+  d.activeTripId=d.trips.some(t=>t.id===d.activeTripId&&!t.finished)?d.activeTripId:null;
   d.memories=Array.isArray(d.memories)?d.memories:[];
-  d.specialDays=Array.isArray(d.specialDays)?d.specialDays.map(x=>({...x,tripId:x?.tripId||""})):[];
+  d.specialDays=Array.isArray(d.specialDays)?d.specialDays.map(x=>({...x,id:x?.id||uid(),tripId:x?.tripId||""})):[];
   return d;
 }
 function load(){
   try{
     const raw=localStorage.getItem(KEY)||localStorage.getItem("our-love-journey-v1");
-    const data=normalizeData(raw?JSON.parse(raw):structuredClone(blank));
-    localStorage.setItem(KEY,JSON.stringify(data));
+    if(!raw)return normalizeData(structuredClone(blank));
+    const data=normalizeData(JSON.parse(raw));
+    try{localStorage.setItem(KEY,JSON.stringify(data))}catch{}
     return data;
-  }catch(e){console.error("Love Journey data load error",e);return structuredClone(blank)}
+  }catch(e){console.error("Love Journey data load error",e);return normalizeData(structuredClone(blank))}
 }
 let db=load();
-function save(){db=normalizeData(db);localStorage.setItem(KEY,JSON.stringify(db))}
-function exportBackup(){const payload={version:2,exportedAt:new Date().toISOString(),app:"Our Love Journey",data:db};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup-"+today()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Backup exported ♡")}
+function save(){
+  const previous=localStorage.getItem(KEY);
+  try{
+    const next=normalizeData(db),json=JSON.stringify(next);
+    localStorage.setItem(KEY,json);db=next;return true;
+  }catch(e){
+    try{if(previous)db=normalizeData(JSON.parse(previous))}catch{}
+    const quota=e?.name==="QuotaExceededError"||/quota|storage/i.test(String(e?.message||""));
+    console.error("Love Journey save error",e);
+    toast(quota?"Storage is full. Export a backup or delete old photos first.":"Could not save your data.");
+    return false;
+  }
+}
+function formatBytes(bytes){const n=Number(bytes)||0;if(n<1024)return n+" B";if(n<1024*1024)return (n/1024).toFixed(1)+" KB";return (n/1024/1024).toFixed(2)+" MB"}
+function appStorageBytes(){try{return new Blob([localStorage.getItem(KEY)||""]).size}catch{return 0}}
+async function storageHealth(){
+  let usage=null,quota=null,persistent=null;
+  try{if(navigator.storage?.estimate){const x=await navigator.storage.estimate();usage=x.usage||0;quota=x.quota||0}if(navigator.storage?.persisted)persistent=await navigator.storage.persisted()}catch{}
+  return {appBytes:appStorageBytes(),usage,quota,persistent};
+}
+async function requestPersistentStorage(){
+  try{if(!navigator.storage?.persist){toast("ဒီ browser မှာ Storage Protection မရပါ");return}const ok=await navigator.storage.persist();toast(ok?"Data storage protection enabled ♡":"Browser က storage protection ကို ခွင့်မပြုသေးပါ");updateStorageHealth()}catch{toast("Storage protection could not be enabled")}
+}
+async function updateStorageHealth(){
+  const el=document.getElementById("storageHealth");if(!el)return;
+  const x=await storageHealth(),pct=x.quota?Math.round((x.usage||0)/x.quota*100):0,warn=x.appBytes>4*1024*1024||pct>=80;
+  el.innerHTML='<div class="storage-health-row"><div><small>APP DATA</small><b>'+formatBytes(x.appBytes)+'</b></div><div><small>ORIGIN USAGE</small><b>'+formatBytes(x.usage||0)+(x.quota?' / '+formatBytes(x.quota):"")+'</b></div><div><small>STATUS</small><b class="'+(warn?"storage-warn":"storage-ok")+'">'+(warn?"⚠ Near limit":"✓ Healthy")+'</b></div></div><div class="storage-health-bar"><span style="width:'+Math.min(100,Math.max(2,pct))+'%"></span></div><p class="muted storage-health-note">'+(x.persistent?"Persistent storage protected.":"Storage is best-effort. Export a backup regularly.")+'</p>';
+}
+function exportBackup(){
+  const payload={version:2,exportedAt:new Date().toISOString(),app:"Our Love Journey",schema:"local-v2",data:normalizeData(db)};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const u=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=u;a.download="our-love-journey-backup-"+today()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Backup exported ♡")
+}
 
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
@@ -105,11 +157,9 @@ function tripCountdown(t){
 function homeUpcoming(){
  const active=db.trips.find(t=>t.id===db.activeTripId&&!t.finished);
  const nowDay=new Date();nowDay.setHours(0,0,0,0);
- const upcomingTrips=(db.trips||[]).filter(t=>!t.finished&&t.startDate).sort((a,b)=>{
-   const ad=new Date(a.startDate+"T00:00:00"),bd=new Date(b.startDate+"T00:00:00");
-   const av=isNaN(ad)?Infinity:Math.abs(ad-nowDay),bv=isNaN(bd)?Infinity:Math.abs(bd-nowDay);
-   return av-bv;
- });
+ const upcomingTrips=(db.trips||[]).filter(t=>!t.finished&&t.startDate).filter(t=>{
+   const d=new Date(t.startDate+"T00:00:00");return !isNaN(d)&&d>=nowDay;
+ }).sort((a,b)=>new Date(a.startDate+"T00:00:00")-new Date(b.startDate+"T00:00:00"));
  const nextTrip=upcomingTrips[0]||null;
  const ann=db.profile.startDate?nextOccurrence(db.profile.startDate):null;
  const nextStop=active?(active.stops||[]).find(s=>!s.reached):null;
@@ -194,7 +244,13 @@ function expensePage(a){
  const monthlyBudget=Number(localStorage.getItem(budgetKey)||0);
  const budgetLeft=monthlyBudget-totalMonth;
  const budgetPct=monthlyBudget?Math.min(100,Math.max(0,totalMonth/monthlyBudget*100)):0;
- const tripRows=monthTrips.map(t=>({name:t.name,total:total(t)})).filter(x=>x.total>0).sort((x,y)=>y.total-x.total);
+ const tripMonthTotal=t=>{
+   let n=0;
+   (t.expenses||[]).forEach(e=>{if(inMonth(e.date||t.startDate))n+=Number(e.amount||0)});
+   (t.stops||[]).forEach(s=>{const d=s.date||t.startDate;if(inMonth(d)){n+=Number(s.price||0);(s.legs||[]).forEach(l=>n+=Number(l.price||0))}});
+   return n;
+ };
+ const tripRows=monthTrips.map(t=>({name:t.name,total:tripMonthTotal(t)})).filter(x=>x.total>0).sort((x,y)=>y.total-x.total);
  const tripHtml=tripRows.length?tripRows.map(x=>'<div class="card expense-cat-row"><div><b>'+esc(x.name)+'</b><small>Trip spending</small></div><strong>฿'+money(x.total)+'</strong><div class="cat-track"><i style="width:'+Math.max(3,Math.round(x.total/(tripRows[0].total||1)*100))+'%"></i></div></div>').join(""):'<div class="card empty">No trip spending yet.</div>';
  a.innerHTML=shellHead("Expense Summary","See your travel spending by day, month, trip and category.")+
  '<div class="expense-month-picker card"><div><div class="eyebrow">TRAVEL MONTH</div><h2>'+monthLabel+'</h2><p class="muted">'+monthTrips.length+' trip'+(monthTrips.length===1?"":"s")+'</p></div><select id="expenseMonth">'+options+'</select></div>'+
@@ -304,7 +360,7 @@ function expenseBreakdown(t){
  const segments=rows.map(([k,v],i)=>{const p=grand?v/grand*100:0;const x=start;start+=p;return "var(--chart-"+colors[i%colors.length]+") "+x+"% "+start+"%"}).join(",");
  return `<div class="expense-summary card"><div class="expense-summary-head"><div><div class="eyebrow">SPENDING MIX</div><h3>Where the money goes</h3><p class="muted">${grand?"Spending across "+rows.length+" categories":"Add an expense to start your spending chart"}</p></div><div class="expense-total"><small>TOTAL</small><b>฿${money(grand)}</b></div></div><div class="expense-chart-grid"><div class="expense-donut-wrap"><div class="expense-donut" style="background:conic-gradient(${segments})"><div class="expense-donut-hole"><small>SPENT</small><b>฿${money(grand)}</b></div></div></div><div class="expense-legend">${rows.map(([k,v],i)=>{const p=grand?Math.round(v/grand*100):0;return `<div class="expense-legend-row"><span class="expense-dot dot-${i%7}"></span><div><b>${esc(k)}</b><small>${p}% of trip spending</small></div><strong>฿${money(v)}</strong></div>`}).join("")}</div></div><div class="expense-bars-title"><span>Category comparison</span><small>Largest first</small></div><div class="expense-bars">${rows.map(([k,v],i)=>{const p=grand?Math.round(v/grand*100):0;return `<div class="expense-bar-modern"><div class="expense-bar-label"><span>${esc(k)}</span><strong>฿${money(v)} <small>${p}%</small></strong></div><div class="expense-bar-track"><i class="chart-bar-${i%7}" style="width:${Math.max(2,Math.round(v/max*100))}%"></i></div></div>`}).join("")}</div></div>`;
 }
-function stopStatus(s,finished=false){if(finished||s.completed)return {key:"completed",label:"Completed",icon:"✓"};if(s.reached)return {key:"reached",label:"Reached",icon:"●"};return {key:"planned",label:"Planned",icon:"○"}}
+function stopStatus(s,finished=false){if(s?.completed)return {key:"completed",label:"Completed",icon:"✓"};if(s?.reached)return {key:"reached",label:"Reached",icon:"●"};return {key:"planned",label:"Planned",icon:"○"}}
 function stopStatusSteps(s,finished=false){const st=stopStatus(s,finished);return `<div class="stop-status ${st.key}" aria-label="Stop status"><span class="status-step ${s.reached||s.completed?"done":st.key==="planned"?"current":""}"><i>○</i> Planned</span><span class="status-line ${s.reached||s.completed?"done":""}></span><span class="status-step ${s.reached||s.completed?"done":st.key==="reached"?"current":""}"><i>●</i> Reached</span><span class="status-line ${s.completed||finished?"done":""}></span><span class="status-step ${s.completed||finished?"done":st.key==="reached"?"current":""}"><i>✓</i> Completed</span></div>`}
 function openStopDetail(t,s){
  const st=stopStatus(s,t.finished),photos=s.memories||[],spent=Number(s.price||0)+routeTransportTotal(s);
@@ -613,7 +669,5 @@ document.addEventListener("click",e=>{
  if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=null;save();go("history");toast("Journey archived")}}
 });
 window.addEventListener("hashchange",render);render();
- const refreshTripCountdown=()=>{const h=homeUpcoming(),el=document.getElementById("homeTripCountdown");if(!el)return;const tc=tripCountdown(h.nextTrip);el.textContent=!h.nextTrip?"Plan your next journey":tc?.started?"Starts today":tc?tc.days+"d "+tc.hours+"h "+tc.minutes+"m "+tc.seconds+"s":"Planned"};clearInterval(window.__homeTripTimer);refreshTripCountdown();window.__homeTripTimer=setInterval(refreshTripCountdown,1000);
-
 // PWA install helper
 let deferredInstallPrompt=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e});window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;toast("Installed ♡")});async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null}else toast("Chrome ⋮ → Add to Home screen")}
