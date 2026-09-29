@@ -64,10 +64,12 @@ function updateNextStopBar(){
  const isTransit=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase());
  const routeText=isTransit?("Board · "+from+" → Get off · "+to):(from+" → "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
- el.innerHTML='<div class="next-stop-clean">'+
-   '<div class="ns-clean-side"><small>CURRENT</small><b>'+esc(from)+'</b></div>'+
-   '<div class="ns-clean-main"><div class="ns-clean-label"><span class="ns-clean-icon">'+icon+'</span><span>3D NEXT STOP · '+esc(label)+'</span></div><strong>'+esc(to)+'</strong><p>'+esc(routeText)+'</p><small class="ns-clean-time">'+timing+'</small></div>'+
-   '<div class="ns-clean-side next"><small>NEXT STOP</small><b>'+esc(next.name)+'</b></div>'+
+ el.innerHTML='<div class="next-stop-center-only">'+
+   '<div class="ns-center-label"><span class="ns-center-icon">'+icon+'</span><span>3D NEXT STOP</span></div>'+
+   '<div class="ns-center-vehicle">'+esc(label)+'</div>'+
+   '<strong>'+esc(to)+'</strong>'+
+   '<p>'+esc(routeText)+'</p>'+
+   '<small>'+timing+'</small>'+
    '<a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">↗</a>'+
  '</div>';
 }
