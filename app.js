@@ -90,8 +90,33 @@ function anniversary(a){
  const p=db.profile;
  a.innerHTML=shellHead("Our Anniversary","Set your names and relationship date whenever you're ready.")+`<div class="card panel"><div class="form-grid"><div class="field"><label>First name</label><input id="n1" value="${esc(p.name1)}" placeholder="Enter name"></div><div class="field"><label>Second name</label><input id="n2" value="${esc(p.name2)}" placeholder="Enter name"></div><div class="field"><label>Relationship / Anniversary date</label><input id="date" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveProfile">Save</button></div></div>${p.startDate?renderAge(p.startDate):`<div class="card empty"><div class="big">♡</div>Add your anniversary date to start the live counter.</div>`}`;
  document.getElementById("saveProfile").onclick=()=>{db.profile.name1=document.getElementById("n1").value.trim();db.profile.name2=document.getElementById("n2").value.trim();db.profile.startDate=document.getElementById("date").value;save();toast("Anniversary saved");render()}
+ if(p.startDate){updateAnniversaryLive(p.startDate);clearInterval(window.__anniversaryTimer);window.__anniversaryTimer=setInterval(()=>updateAnniversaryLive(db.profile.startDate),1000)}
 }
-function renderAge(d){const x=ageParts(d);return `<div class="card panel"><div class="eyebrow">TOGETHER FOR</div><div class="countdown"><div class="timebox"><b>${x.years}</b><small>Years</small></div><div class="timebox"><b>${x.months}</b><small>Months</small></div><div class="timebox"><b>${x.days}</b><small>Days</small></div><div class="timebox"><b id="annSec">0</b><small>Seconds</small></div></div><p class="muted" style="margin-top:18px">Started on ${new Date(d+"T00:00").toLocaleDateString()}</p></div>`}
+function preciseAge(d){
+ const start=new Date(d+"T00:00:00"), now=new Date();
+ if(isNaN(start)||start>now)return null;
+ let years=now.getFullYear()-start.getFullYear();
+ let anchor=new Date(start);anchor.setFullYear(start.getFullYear()+years);
+ if(anchor>now){years--;anchor=new Date(start);anchor.setFullYear(start.getFullYear()+years)}
+ let months=now.getMonth()-anchor.getMonth();
+ if(months<0)months+=12;
+ let monthAnchor=new Date(anchor);monthAnchor.setMonth(anchor.getMonth()+months);
+ if(monthAnchor>now){months--;monthAnchor=new Date(anchor);monthAnchor.setMonth(anchor.getMonth()+months)}
+ const diff=now-monthAnchor;
+ const days=Math.floor(diff/86400000);
+ const hours=Math.floor((diff%86400000)/3600000);
+ const minutes=Math.floor((diff%3600000)/60000);
+ const seconds=Math.floor((diff%60000)/1000);
+ return {years,months,days,hours,minutes,seconds};
+}
+function updateAnniversaryLive(d){
+ const x=preciseAge(d);if(!x)return;
+ ["annYears","annMonths","annDays","annHours","annMinutes","annSeconds"].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[x.years,x.months,x.days,x.hours,x.minutes,x.seconds][i]});
+}
+function renderAge(d){
+ const x=preciseAge(d)||{years:0,months:0,days:0,hours:0,minutes:0,seconds:0};
+ return `<div class="card panel"><div class="eyebrow">TOGETHER FOR</div><div class="countdown"><div class="timebox"><b id="annYears">${x.years}</b><small>Years</small></div><div class="timebox"><b id="annMonths">${x.months}</b><small>Months</small></div><div class="timebox"><b id="annDays">${x.days}</b><small>Days</small></div><div class="timebox"><b id="annHours">${x.hours}</b><small>Hours</small></div><div class="timebox"><b id="annMinutes">${x.minutes}</b><small>Minutes</small></div><div class="timebox"><b id="annSeconds">${x.seconds}</b><small>Seconds</small></div></div><p class="muted" style="margin-top:18px">Started on ${new Date(d+"T00:00").toLocaleDateString()}</p></div>`;
+}
 function travel(a){
  const active=db.trips.find(t=>t.id===db.activeTripId);
  a.innerHTML=shellHead("Traveling","Plan routes, mark places as reached and keep every expense with the trip.")+
