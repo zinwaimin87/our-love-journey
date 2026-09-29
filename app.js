@@ -422,7 +422,7 @@ function memoryViewer(id,scope="global",tripId=""){
  m.querySelector("#memoryZoomIn").onclick=()=>{scale=Math.min(3,scale+.25);apply()};m.querySelector("#memoryZoomOut").onclick=()=>{scale=Math.max(.5,scale-.25);apply()};m.querySelector("#memoryZoomReset").onclick=()=>{scale=1;apply()};
  m.querySelector("#memoryViewerFav").onclick=()=>{cur().favorite=!cur().favorite;save();apply();toast(cur().favorite?"Added to favorites":"Removed from favorites")};
  m.querySelector("#memoryEdit").onclick=()=>editMemoryDetails(cur(),scope,info.t?.id||tripId,close);
- let down=0;m.querySelector(".memory-viewer-stage").addEventListener("pointerdown",e=>down=e.clientX);m.querySelector(".memory-viewer-stage").addEventListener("pointerup",e=>{const dx=e.clientX-down;if(Math.abs(dx)>60&&scale===1)step(dx<0?1:-1)});
+ let down=0,downY=0,pinchStart=0,pinchScale=1;const stage=m.querySelector(".memory-viewer-stage");stage.addEventListener("pointerdown",e=>{down=e.clientX;downY=e.clientY;stage.setPointerCapture?.(e.pointerId)});stage.addEventListener("pointerup",e=>{const dx=e.clientX-down,dy=e.clientY-downY;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)&&scale===1)step(dx<0?1:-1)});stage.addEventListener("dblclick",()=>{scale=scale===1?2:1;apply()});stage.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>0){e.preventDefault();scale=Math.max(.5,Math.min(3,scale+(e.deltaY<0?.15:-.15)));apply()}},{passive:false});
  document.addEventListener("keydown",keyHandler);
 }
 function editMemoryDetails(mem,scope="global",tripId="",closeViewer){
