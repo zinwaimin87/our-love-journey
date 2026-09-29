@@ -430,3 +430,10 @@ body{min-width:0;overflow-x:hidden}
  .ns-route i{font-size:8px;max-width:calc(100vw - 125px)}
  .ns-map{font-size:8px;padding:6px 8px}
 }
+
+.next-stop-bar:not(.has-next-stop){display:none}
+@media(max-width:720px){
+ .topbar{height:auto;min-height:0;padding-top:8px;padding-bottom:8px}
+ .next-stop-bar.has-next-stop{display:block}
+ .next-stop-bar{flex-basis:100%}
+}
