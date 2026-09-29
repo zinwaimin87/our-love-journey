@@ -34,6 +34,9 @@ function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt
 function money(n){return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(n)||0)}
 function toast(t){const x=document.getElementById("toast");if(!x)return;x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
 function ageParts(start){if(!start)return null;const a=new Date(start),b=new Date();if(isNaN(a))return null;let years=b.getFullYear()-a.getFullYear(),months=b.getMonth()-a.getMonth(),days=b.getDate()-a.getDate();if(days<0){months--;days+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}if(months<0){years--;months+=12}return {years,months,days}}
+function reminderStatus(){return localStorage.getItem("our-love-journey-reminders")==="1"}
+async function enableReminders(){if(!("Notification" in window)){toast("ဒီ browser မှာ notification မရပါ");return}const p=await Notification.requestPermission();if(p==="granted"){localStorage.setItem("our-love-journey-reminders","1");toast("Reminders enabled ♡");checkReminders(true)}else toast("Notification permission မပေးရသေးပါ")}
+function checkReminders(force=false){if(!reminderStatus()||!("Notification" in window)||Notification.permission!=="granted")return;const now=new Date();const key=now.toISOString().slice(0,10);if(!force&&localStorage.getItem("our-love-journey-last-reminder")===key)return;const notes=[];const ann=db.profile.startDate?nextOccurrence(db.profile.startDate):null;if(ann){const d=Math.max(0,Math.ceil((ann-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000));if(d<=7)notes.push(d===0?"Anniversary is today ♡":"Anniversary in "+d+" day"+(d===1?"":"s")+" ♡")}const trips=(db.trips||[]).filter(t=>!t.finished&&t.startDate);trips.forEach(t=>{const d=Math.ceil((new Date(t.startDate+"T00:00:00")-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);if(d>=0&&d<=3)notes.push(d===0?t.name+" starts today ✈":t.name+" starts in "+d+" day"+(d===1?"":"s")+" ✈")});if(notes.length){new Notification("Our Love Journey",{body:notes.slice(0,3).join("\n"),icon:"icon-192.svg",badge:"icon-192.svg"});localStorage.setItem("our-love-journey-last-reminder",key)}}
 function pageName(){return location.hash.slice(1)||"home"}
 function go(p){location.hash=p}
 function setup3D(){
@@ -81,6 +84,7 @@ function render(){
    if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="calendar")calendar(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
    updateNextStopBar();
+   checkReminders();
  }catch(e){
    console.error("Love Journey render error",e);
    app.innerHTML=`<section class="card panel" style="margin-top:20px"><div class="eyebrow">OUR LOVE JOURNEY</div><h1>Welcome back ♡</h1><p class="muted">The page recovered from an old saved-data format. Your saved information is being kept safe.</p><button class="btn" onclick="location.hash='home';render()">Open Home</button></section>`;
@@ -359,10 +363,11 @@ function finishedTripDetail(t){
 function settings(a){
  const p=db.profile;
  a.innerHTML=shellHead("Settings","Private, simple and stored on this device.")+`<div class="card panel"><h2>Couple Profile</h2><div class="form-grid"><div class="field"><label>First name</label><input id="sn1" value="${esc(p.name1)}"></div><div class="field"><label>Second name</label><input id="sn2" value="${esc(p.name2)}"></div><div class="field"><label>Anniversary date</label><input id="sd2" type="date" value="${esc(p.startDate)}"></div></div><div class="actions"><button class="btn" id="saveSet">Save Changes</button></div></div>
+ <div class="card panel"><h2>Reminders</h2><p class="muted">Anniversary နီးလာတာနဲ့ Trip စတော့မယ့်ရက်ကို app ဖွင့်ထားတဲ့အချိန်မှာ notification ပြပေးနိုင်ပါတယ်။</p><div class="actions"><button class="btn secondary" id="enableRemindersBtn" type="button">🔔 Enable Reminders</button></div></div>
  <div class="card panel"><h2>Install App</h2><p class="muted">Install Our Love Journey on your phone for a full-screen app experience.</p><div class="actions"><button class="btn install-app-btn" id="installAppBtn" type="button">⬇ Install Our Love Journey</button></div></div>
  <div class="card panel"><h2>Data</h2><p class="muted">Your data is stored in this browser using local storage. No Gmail, account or server connection is required.</p><div class="actions"><button class="btn secondary" id="export">Export Backup</button><label class="btn secondary" style="display:inline-flex;align-items:center"><input id="import" type="file" accept=".json" hidden>Import Backup</label><button class="btn danger" id="clear">Clear All Data</button></div></div>`;
  document.getElementById("saveSet").onclick=()=>{db.profile.name1=document.getElementById("sn1").value.trim();db.profile.name2=document.getElementById("sn2").value.trim();db.profile.startDate=document.getElementById("sd2").value;save();toast("Settings saved");render()}
-document.getElementById("installAppBtn")?.addEventListener("click",installApp);
+document.getElementById("installAppBtn")?.addEventListener("click",installApp);document.getElementById("enableRemindersBtn")?.addEventListener("click",enableReminders);
  document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="our-love-journey-backup.json";a.click();URL.revokeObjectURL(u)}
  document.getElementById("import").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();toast("Backup imported");render()}catch{toast("Invalid backup")}};r.readAsText(f)}
  document.getElementById("clear").onclick=()=>{if(confirm("Clear all Love Journey data from this device?")){db=structuredClone(blank);save();render();toast("All data cleared")}}
