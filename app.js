@@ -121,13 +121,13 @@ function updateNextStopBar(){
  const isTransit=["train","bts","mrt","boat","bus"].includes(mode.toLowerCase());
  const routeText=isTransit?("Board · "+from+" → Get off · "+to):(from+" → "+to);
  const timing=(next.date?esc(next.date):"Planned")+(next.time?" · "+esc(next.time):"");
- el.innerHTML='<div class="next-stop-center-only">'+
-   '<div class="ns-center-label"><span class="ns-center-icon">'+icon+'</span><span>3D NEXT STOP</span></div>'+
-   '<div class="ns-center-vehicle">'+esc(label)+'</div>'+
-   '<strong>'+esc(to)+'</strong>'+
-   '<p>'+esc(routeText)+'</p>'+
-   '<small>'+timing+'</small>'+
-   '<a class="ns-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener">↗</a>'+
+ const idx=stops.findIndex(x=>x.id===next.id),progress=stops.length?Math.round(((idx)/stops.length)*100):0;
+ el.innerHTML='<div class="next-stop-live" data-page="travel">'+
+   '<div class="ns-live-icon">'+icon+'</div>'+
+   '<div class="ns-live-main"><div class="ns-live-kicker"><span>LIVE JOURNEY</span><b>NEXT STOP</b></div>'+
+   '<strong>'+esc(to)+'</strong><small>'+esc(label)+' · STOP '+String(idx+1).padStart(2,"0")+' / '+String(stops.length).padStart(2,"0")+(timing?" · "+timing:"")+'</small>'+
+   '<i><em style="width:'+progress+'%"></em></i></div>'+
+   '<a class="ns-live-map" href="'+mapsDirectionsUrl(from,to,mode)+'" target="_blank" rel="noopener" aria-label="Open route">↗</a>'+
  '</div>';
 }
 function render(){
