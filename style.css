@@ -276,3 +276,7 @@ body{min-width:0;overflow-x:hidden}
   .history-trip-actions{gap:5px}
   .history-trip-actions .btn{padding:9px 5px;font-size:10px}
 }
+
+/* === HOME CLEANUP: ORB REMOVED === */
+.hero{display:block!important}
+.hero-card{width:100%!important}
