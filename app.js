@@ -475,7 +475,7 @@ function history(a){
  a.querySelectorAll("[data-open-history-trip]").forEach(btn=>btn.addEventListener("click",()=>{
   const trip=db.trips.find(t=>String(t.id)===String(btn.dataset.openHistoryTrip));
   if(!trip)return;
-  db.activeTripId=trip.id;save();location.hash="history";
+  db.activeTripId=trip.id;save();if(location.hash!=="#history"){location.hash="history"}else{render()}
  }));
 }
 function finishedTripDetail(t){
@@ -622,7 +622,7 @@ document.addEventListener("click",e=>{
   }
   return;
  }
- const openHistory=e.target.closest("[data-open-history-trip]");if(openHistory){const trip=db.trips.find(t=>String(t.id)===String(openHistory.dataset.openHistoryTrip));if(!trip)return;db.activeTripId=trip.id;save();go("history");return}
+ const openHistory=e.target.closest("[data-open-history-trip]");if(openHistory){e.preventDefault();e.stopPropagation();const trip=db.trips.find(t=>String(t.id)===String(openHistory.dataset.openHistoryTrip));if(!trip)return;db.activeTripId=trip.id;save();if(location.hash!=="#history"){go("history")}else{render()}return}
  const open=e.target.closest("[data-open-trip]");if(open){const trip=db.trips.find(t=>String(t.id)===String(open.dataset.openTrip));if(!trip)return;db.activeTripId=trip.id;save();const target=trip.finished?"history":"travel";if(pageName()===target){render()}else{go(target)}return}
  const exportTrip=e.target.closest("[data-export-trip]");if(exportTrip){const t=db.trips.find(x=>String(x.id)===String(exportTrip.dataset.exportTrip));if(t){const blob=new Blob([JSON.stringify(t,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=(t.name||"trip").replace(/[^a-z0-9-_]+/gi,"-").replace(/^-|-$/g,"")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(u),500);toast("Trip backup exported")}return}
  const tripCover=e.target.closest("[data-trip-cover]");
