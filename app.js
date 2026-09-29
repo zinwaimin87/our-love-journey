@@ -148,15 +148,20 @@ function updateNextStopBar(){
 function render(){
  const p=pageName(),app=document.getElementById("app");
  if(!app)return;
+ window.db=db;
  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
  try{
+   db=normalizeData(db); window.db=db;
    if(p==="home")home(app); else if(p==="anniversary")anniversary(app); else if(p==="expense")expensePage(app); else if(p==="travel")travel(app); else if(p==="memories")memories(app); else if(p==="history")history(app); else settings(app);
    setup3D();
    updateNextStopBar();
    checkReminders();
  }catch(e){
    console.error("Love Journey render error",e);
-   app.innerHTML=`<section class="card panel" style="margin-top:20px"><div class="eyebrow">OUR LOVE JOURNEY</div><h1>Welcome back ♡</h1><p class="muted">The page recovered from an old saved-data format. Your saved information is being kept safe.</p><button class="btn" onclick="location.hash='home';render()">Open Home</button></section>`;
+   try{db=normalizeData(db);window.db=db}catch{}
+   const n1=esc(db?.profile?.name1||"Your Name"),n2=esc(db?.profile?.name2||"Love"),trips=Array.isArray(db?.trips)?db.trips:[];
+   app.innerHTML='<section class="hero"><div class="card hero-card"><div class="hero-heart">♥</div><h1>'+n1+' <span>∞</span> '+n2+'</h1><p class="muted">Your saved journey is safe. The page has been recovered automatically.</p><div class="actions"><button class="btn" data-page="anniversary">♡ Anniversary</button><button class="btn secondary" data-page="travel">✈ Start a Journey</button></div></div></section><div class="section-title"><h2>Your Journey</h2><span class="muted">'+trips.length+' trip(s)</span></div><div class="card empty"><div class="big">✈</div><b>Journey data is safe</b><p>Open Travel to continue your saved trips.</p></div>';
+   try{setup3D();updateNextStopBar()}catch{}
  }
 }
 function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div>`}
