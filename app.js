@@ -714,21 +714,20 @@ document.addEventListener("click",e=>{
   {id:"note",label:"Note",type:"text",placeholder:"Optional"}
  ],vals=>{const price=Number(vals.price);if(!vals.from.trim()||!vals.to.trim())return toast("Enter From and To");if(price<0)return toast("Enter a valid price");s.legs=s.legs||[];s.legs.push({id:uid(),from:vals.from.trim(),to:vals.to.trim(),vehicle:vals.vehicle,price,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Transport step saved")});return}
  const editExpense=e.target.closest("[data-edit-expense]");
- if(editExpense){
-  const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(editExpense.dataset.editExpense));if(!ex)return;
-  openFormModal("Edit Expense",[
-   {id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food","Hotel","Tickets","Souvenir / Shopping","Other"]},
-   {id:"amount",label:"Amount (THB)",type:"number",value:ex.amount>0?String(ex.amount):"",placeholder:"e.g. 250"},
-   {id:"date",label:"Date",type:"date",value:ex.date||today()},
-   {id:"note",label:"Note",type:"text",value:ex.note||"",placeholder:"Optional note"}
-  ],vals=>{
-   const amount=Number(vals.amount);if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");
-   ex.category=vals.category;ex.amount=amount;ex.date=vals.date;ex.note=vals.note.trim();
-   save();render();toast("Expense updated");
-  });
-  const sel=document.getElementById("mf_category");if(sel)sel.value=ex.category;
-  return;
- }
+ if(editExpense){const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(editExpense.dataset.editExpense));if(!ex)return;const members=tripMembers(t);openFormModal("Edit Group Expense",[
+ {id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Toll / Parking","Gifts","Internet / SIM","Medical","Other"]},
+ {id:"amount",label:"Amount (THB)",type:"number",value:String(ex.amount||""),placeholder:"e.g. 250"},
+ {id:"date",label:"Date",type:"date",value:ex.date||today()},
+ {id:"time",label:"Time",type:"time",value:ex.time||""},
+ {id:"paidBy",label:"Paid by",type:"select",options:members.map(x=>({value:x,label:x}))},
+ {id:"participants",label:"Shared by (comma separated)",type:"text",value:(ex.participants||members).join(", ")},
+ {id:"splitMethod",label:"Split method",type:"select",options:[{value:"equal",label:"Equal split"},{value:"custom",label:"Custom amounts"},{value:"percentage",label:"Percentage split"}]},
+ {id:"customShares",label:"Custom split",type:"text",placeholder:"Name=amount, Name=amount"},
+ {id:"paymentMethod",label:"Payment method",type:"select",options:["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"]},
+ {id:"location",label:"Location",type:"text",value:ex.location||"",placeholder:"e.g. Pattaya"},
+ {id:"note",label:"Note",type:"text",value:ex.note||"",placeholder:"Optional note"}],
+ vals=>{const amount=Number(vals.amount),people=vals.participants.split(",").map(x=>x.trim()).filter(Boolean);if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");if(!people.length)return toast("Add at least one person");ex.category=vals.category;ex.amount=amount;ex.date=vals.date;ex.time=vals.time;ex.paidBy=vals.paidBy;ex.participants=people;ex.splitMethod=vals.splitMethod;ex.shares=parseExpenseShares(vals.customShares,vals.splitMethod,amount,people);ex.paymentMethod=vals.paymentMethod;ex.location=vals.location.trim();ex.note=vals.note.trim();save();render();toast("Group expense updated")});
+ setTimeout(()=>{const c=document.getElementById("mf_category");if(c)c.value=ex.category;const p=document.getElementById("mf_paidBy");if(p)p.value=ex.paidBy||members[0];const m=document.getElementById("mf_splitMethod");if(m)m.value=ex.splitMethod||"equal"},0);return}
  const deleteExpense=e.target.closest("[data-delete-expense]");
  if(deleteExpense){
   const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(deleteExpense.dataset.deleteExpense));if(!ex)return;
