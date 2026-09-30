@@ -173,7 +173,19 @@ function render(){
    try{setup3D();updateNextStopBar()}catch{}
  }
 }
-function shellHead(title,sub){return `<div class="page-head"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div></div><div id="nextStopBar" aria-live="polite"></div>`}
+function shellHead(title,sub){
+ const info={
+  "Couple Calendar":["♡","နေ့ရက်အရေးကြီးတွေ သိမ်းရန်","Anniversary, Birthday, First Date စတဲ့နေ့တွေကို တစ်နေရာတည်းမှာ စီမံပါ။"],
+  "Expense Summary":["฿","ခရီးစရိတ် စီမံရန်","လစဉ်၊ ခရီးစဉ်၊ အမျိုးအစားအလိုက် သုံးစွဲငွေကို ကြည့်ပါ။"],
+  "Our Anniversary":["∞","အချစ်ကာလကို ကြည့်ရန်","အတူရှိလာတဲ့ နှစ်၊ လ၊ ရက်၊ နာရီ၊ မိနစ်၊ စက္ကန့်ကို တိုက်ရိုက်ကြည့်ပါ။"],
+  "Traveling":["✈","ခရီးစဉ်ကို စီမံရန်","Route, Stops, Reached, Expenses နဲ့ ခရီးစဉ်တစ်ခုလုံးကို ဒီနေရာမှာ စီမံပါ။"],
+  "Memories":["📸","အမှတ်တရတွေ သိမ်းရန်","ဓာတ်ပုံတွေကို သိမ်း၊ Favorite လုပ်ပြီး ခရီးစဉ်နဲ့ ချိတ်ပါ။"],
+  "Finished Journeys":["◷","ပြီးခဲ့တဲ့ခရီးတွေ ကြည့်ရန်","ပြီးဆုံးခဲ့တဲ့ ခရီးစဉ်တွေရဲ့ Route, Photos နဲ့ Expenses ကို ပြန်ကြည့်ပါ။"],
+  "Journey Detail":["✓","ပြီးဆုံးခဲ့တဲ့ခရီး အသေးစိတ်","Route, Stops, Memories နဲ့ Spending အားလုံးကို တစ်နေရာတည်းမှာ ကြည့်ပါ။"],
+  "Settings":["⚙","App ကို စီမံရန်","Profile, Reminder, Backup နဲ့ Storage ကို ဒီနေရာမှာ စီမံပါ။"]
+ }[title]||["♡","Your private journey","Keep your important moments organized in one place."];
+ return `<div class="page-head page-head-clear"><div class="page-head-icon">${info[0]}</div><div class="page-head-copy"><div class="eyebrow">OUR PRIVATE JOURNEY</div><h1>${title}</h1><div class="muted">${sub}</div><div class="page-guide">${info[2]}</div></div></div><div id="nextStopBar" aria-live="polite"></div>`;
+}
 function tripCountdown(t){
  if(!t?.startDate)return null;
  const start=new Date(t.startDate+"T00:00:00");
