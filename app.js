@@ -602,83 +602,101 @@ async function openMapPicker(initialLat=null,initialLng=null,initialName=""){con
 };document.getElementById("mapSearchBtn").onclick=()=>search();document.querySelectorAll("[data-city]").forEach(b=>b.onclick=()=>search(b.dataset.city));const thailandBtn=document.createElement("button");thailandBtn.className="btn secondary";thailandBtn.type="button";thailandBtn.textContent="🇹🇭 Thailand";thailandBtn.onclick=()=>{selected=null;map.setView(THAILAND_CENTER,11);marker?.remove();marker=null;document.getElementById("mapSearchInput").value="";clearResults();show()};document.querySelector(".map-picker-search")?.appendChild(thailandBtn);const locateBtn=document.createElement("button");locateBtn.className="btn secondary";locateBtn.type="button";locateBtn.textContent="📍 My Location";locateBtn.onclick=()=>{if(!navigator.geolocation)return toast("Location is not available");navigator.geolocation.getCurrentPosition(p=>{const x={lat:p.coords.latitude,lng:p.coords.longitude};if(x.lat<5||x.lat>21.5||x.lng<97||x.lng>106){toast("📍 Location is outside Thailand.");map.setView(THAILAND_CENTER,11);return}map.setView([x.lat,x.lng],16);put(x,"My Location")},()=>toast("Location permission was not granted"),{enableHighAccuracy:true,timeout:10000,maximumAge:30000})};document.querySelector(".map-picker-search")?.appendChild(locateBtn);document.getElementById("mapSearchInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();search()}};const close=v=>{m.remove();resolve(v)};document.getElementById("mapPickerClose").onclick=()=>close(null);document.getElementById("mapPickerCancel").onclick=()=>close(null);document.getElementById("mapPickerSave").onclick=()=>selected?close(selected):toast("Choose a location first");setTimeout(()=>map.invalidateSize(),150)})}
 function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="hidden"?`<input id="mf_${f.id}" type="hidden" value="${esc(f.value||"")}">`:f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>{const v=typeof o==="object"?o.value:o;const l=typeof o==="object"?o.label:o;return `<option value="${esc(v)}">${esc(l)}</option>`}).join("")}</select></div>`:f.type==="textarea"?`<div class="field"><label>${f.label}</label><textarea id="mf_${f.id}" placeholder="${esc(f.placeholder||"")}">${esc(f.value||"")}</textarea></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}
 function openGroupExpenseModal(t,existing=null){
- const members=[...tripMembers(t)];
- const current=existing||{};
+ const members=[...tripMembers(t)],current=existing||{};
  let selected=new Set(Array.isArray(current.participants)&&current.participants.length?current.participants:members);
- let personal=selected.size===1&&selected.has(String(current.paidBy||db.profile?.name1||members[0]));
- const split=current.splitMethod||"equal";
- const modal=document.getElementById("formModal");if(modal)modal.remove();
- const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";
+ let personal=selected.size===1&&selected.has(String(current.paidBy||members[0]));
+ let split=personal?"equal":(current.splitMethod||"equal");
+ const m=document.getElementById("formModal");if(m)m.remove();
+ const modal=document.createElement("div");modal.id="formModal";modal.className="modal-backdrop";
  const escHtml=v=>esc(String(v??""));
- const catOptions=["Transportation","Fuel","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Toll / Parking","Gifts","Internet / SIM","Medical","Other"];
- const payOptions=["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"];
- m.innerHTML=`<div class="modal-card group-expense-modal">
+ const cats=["Transportation","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Fuel","Toll / Parking","Other"];
+ const pays=["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"];
+ modal.innerHTML=`<div class="modal-card expense-easy-modal">
   <button class="modal-close" id="modalClose">×</button>
-  <div class="eyebrow">QUICK ENTRY</div><h2>${existing?"Edit Group Expense":"Add Group Expense"}</h2>
-  <div class="modal-fields">
-   <div class="field"><label>Category</label><select id="gemCategory">${catOptions.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
-   <div class="field"><label>Amount (THB)</label><input id="gemAmount" type="number" min="0" step="0.01" placeholder="e.g. 900"></div>
-   <div class="gem-date-row"><div class="field"><label>Date</label><input id="gemDate" type="date"></div><div class="field"><label>Time</label><input id="gemTime" type="time"></div></div>
-   <div class="field"><label>Paid by <small>(who paid this expense?)</small></label><select id="gemPaidBy"></select></div>
-   <div class="field"><div class="gem-label-row"><label>Shared by <small>(who used / shared this expense?)</small></label><button type="button" class="gem-select-all" id="gemSelectAll">Select all</button></div><div class="gem-people" id="gemPeople"></div></div>
-   <div class="gem-personal"><div><b>Personal expense (only me)</b><small>Turn this on if this expense is for one person only.</small></div><label class="gem-switch"><input id="gemPersonal" type="checkbox"><span></span></label></div>
-   <div class="field"><label>Split method</label><div class="gem-split-tabs" id="gemSplit"><button type="button" data-split="equal">Equal split</button><button type="button" data-split="custom">Custom amount</button><button type="button" data-split="percentage">Percentage</button></div></div>
-   <div class="field"><div class="gem-label-row"><label>Custom split <small>(optional)</small></label><button type="button" class="gem-select-all" id="gemAutoFill">↗ Auto fill</button></div><div id="gemShares"></div></div>
-   <div class="field"><label>Payment method</label><select id="gemPayment">${payOptions.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
-   <div class="field"><label>Location <small>(optional)</small></label><input id="gemLocation" placeholder="e.g. Pattaya, Terminal 21"></div>
-   <div class="field"><label>Note <small>(optional)</small></label><input id="gemNote" placeholder="e.g. Taxi to hotel"></div>
+  <div class="eyebrow">EXPENSE</div>
+  <h2>${existing?"Edit Expense":"Add Expense"}</h2>
+  <p class="expense-help">အရင်ဆုံး ဘယ်လောက်ကုန်လဲ → ဘယ်သူသုံးလဲ → ဘယ်သူကရှင်းလဲ ဆိုတာပဲရွေးပါ။</p>
+  <div class="expense-step"><span>1</span><div><b>စရိတ်အမျိုးအစား</b><small>ဘာအတွက်ကုန်တာလဲ?</small></div></div>
+  <div class="field"><label>Category</label><select id="gemCategory">${cats.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
+  <div class="expense-amount-row">
+   <div class="field"><label>Amount (THB)</label><input id="gemAmount" type="number" min="0" step="0.01" placeholder="ဥပမာ 900"></div>
+   <div class="field"><label>Date</label><input id="gemDate" type="date"></div>
+   <div class="field"><label>Time</label><input id="gemTime" type="time"></div>
   </div>
-  <div class="actions"><button class="btn" id="gemSave">Save</button><button class="btn secondary" id="gemCancel">Cancel</button></div>
+  <div class="expense-step"><span>2</span><div><b>ဘယ်သူတွေ သုံးတာလဲ?</b><small>လူတစ်ယောက်တည်းဆို Personal ကိုဖွင့်ပါ</small></div></div>
+  <div class="expense-personal-row"><div><b>👤 ကိုယ်တစ်ယောက်တည်းသုံးတာ</b><small>အခြားသူတွေနဲ့ မခွဲပါ</small></div><label class="gem-switch"><input id="gemPersonal" type="checkbox"><span></span></label></div>
+  <div id="gemSharedBox">
+   <div class="gem-label-row"><label>Shared by <small>အသုံးပြုသူများ</small></label><button type="button" class="gem-select-all" id="gemSelectAll">အားလုံးရွေး</button></div>
+   <div class="gem-people" id="gemPeople"></div>
+  </div>
+  <div class="expense-step"><span>3</span><div><b>ဘယ်သူက ပိုက်ဆံရှင်းလဲ?</b><small>ငွေကို တကယ်ပေးခဲ့သူ</small></div></div>
+  <div class="field"><label>Paid by</label><select id="gemPaidBy"></select></div>
+  <div id="gemSplitBox">
+   <div class="expense-step mini"><span>4</span><div><b>ဘယ်လိုခွဲမလဲ?</b><small>ပုံမှန်ဆို Equal Split ကိုထားပါ</small></div></div>
+   <div class="gem-split-tabs" id="gemSplit"><button type="button" data-split="equal">တန်းတူခွဲ</button><button type="button" data-split="custom">ကိုယ်စီငွေ</button><button type="button" data-split="percentage">% နဲ့ခွဲ</button></div>
+   <div class="split-explain" id="gemSplitExplain"></div>
+   <div id="gemShares"></div>
+  </div>
+  <div class="expense-step mini"><span>5</span><div><b>ငွေပေးချေမှု</b><small>လိုအပ်ရင်သာ ဖြည့်ပါ</small></div></div>
+  <div class="field"><label>Payment method</label><select id="gemPayment">${pays.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
+  <div class="field"><label>Location <small>(optional)</small></label><input id="gemLocation" placeholder="ဥပမာ Pattaya / Terminal 21"></div>
+  <div class="field"><label>Note <small>(optional)</small></label><input id="gemNote" placeholder="ဥပမာ Dinner / Taxi"></div>
+  <div class="expense-total-preview" id="gemPreview"></div>
+  <div class="actions"><button class="btn" id="gemSave">Save Expense</button><button class="btn secondary" id="gemCancel">Cancel</button></div>
  </div>`;
- document.body.appendChild(m);
+ document.body.appendChild(modal);
  const $=id=>document.getElementById(id);
- $("gemCategory").value=current.category||"Transportation";
- $("gemAmount").value=current.amount??"";
+ $("gemCategory").value=current.category||"Transportation";$("gemAmount").value=current.amount??"";
  $("gemDate").value=current.date||today();$("gemTime").value=current.time||"";
  $("gemPayment").value=current.paymentMethod||"Cash";$("gemLocation").value=current.location||"";$("gemNote").value=current.note||"";
+ $("gemPaidBy").innerHTML=members.map(x=>`<option value="${escHtml(x)}">${escHtml(x)}</option>`).join("");$("gemPaidBy").value=current.paidBy||members[0];
  const renderPeople=()=>{
    $("gemPeople").innerHTML=members.map(name=>`<button type="button" class="gem-person ${selected.has(name)?"selected":""}" data-person="${escHtml(name)}"><span class="gem-check">${selected.has(name)?"✓":""}</span><span>${escHtml(name)}</span></button>`).join("")+
-   '<button type="button" class="gem-person gem-add-person" id="gemAddPerson"><span class="gem-plus">＋</span><span>Add</span></button>';
-   $("gemPeople").querySelectorAll("[data-person]").forEach(b=>b.onclick=()=>{if(personal)return;const n=b.dataset.person;if(selected.has(n))selected.delete(n);else selected.add(n);renderPeople();renderShares()});
-   $("gemAddPerson").onclick=()=>{const name=prompt("Enter new person name");if(!name||!name.trim())return;const n=name.trim();if(!members.includes(n))members.push(n);selected.add(n);renderPeople();renderShares()};
+   '<button type="button" class="gem-person gem-add-person" id="gemAddPerson"><span>＋</span><span>လူထပ်ထည့်</span></button>';
+   $("gemPeople").querySelectorAll("[data-person]").forEach(b=>b.onclick=()=>{if(personal)return;const n=b.dataset.person;if(selected.has(n))selected.delete(n);else selected.add(n);renderPeople();renderSplit()});
+   $("gemAddPerson").onclick=()=>{const name=prompt("လူအသစ်အမည်ထည့်ပါ");if(!name?.trim())return;const n=name.trim();if(!members.includes(n))members.push(n);selected.add(n);renderPeople();renderSplit()};
  };
- const renderShares=()=>{
-   const people=personal?[String($("gemPaidBy").value||members[0])]:[...selected];
-   const method=split;
-   $("gemShares").innerHTML=people.length?people.map(name=>{
-     const old=(current.shares||[]).find(x=>x.member===name);const equal=Number($("gemAmount").value||0)/(people.length||1);
-     const val=old?old.amount:equal;
-     return `<div class="gem-share-row"><span>${escHtml(name)}</span><div><input class="gem-share-input" data-share-name="${escHtml(name)}" type="number" min="0" step="0.01" value="${method==="equal"?equal.toFixed(2):(Number(val)||0)}" ${method==="equal"?"disabled":""}><small>${method==="percentage"?"%":"THB"}</small></div><button type="button" class="gem-remove-share" data-remove-share="${escHtml(name)}">×</button></div>`;
-   }).join(""):'<div class="muted">Select at least one person.</div>';
-   $("gemShares").querySelectorAll("[data-remove-share]").forEach(b=>b.onclick=()=>{selected.delete(b.dataset.removeShare);renderPeople();renderShares()});
+ const renderSplit=()=>{
+   const people=personal?[String($("gemPaidBy").value||members[0])]:[...selected],amount=Number($("gemAmount").value||0),n=people.length||1,each=amount/n;
+   $("gemShares").innerHTML="";
+   if(personal){$("gemSplitExplain").innerHTML='<b>Personal expense</b> — ဒီစရိတ်ကို ကိုယ်တစ်ယောက်တည်းအဖြစ် မှတ်တမ်းတင်ပါမယ်.';$("gemPreview").innerHTML=`<b>ကိုယ်ပိုင်စရိတ်</b><strong>฿${money(amount)}</strong>`;return}
+   if(!people.length){$("gemSplitExplain").textContent="အနည်းဆုံး လူ ၁ ယောက်ရွေးပါ";$("gemPreview").innerHTML="";return}
+   if(split==="equal"){
+     $("gemSplitExplain").innerHTML=`<b>${people.length} ယောက်</b> · ฿${money(amount)} ÷ ${people.length} = <strong>฿${money(each)} / ယောက်</strong>`;
+     $("gemShares").innerHTML=people.map(name=>`<div class="simple-share-row"><span>👤 ${escHtml(name)}</span><b>฿${money(each)}</b></div>`).join("");
+   }else{
+     const old=current.shares||[];
+     $("gemSplitExplain").textContent=split==="custom"?"လူတစ်ယောက်စီ ပေးရမယ့်ငွေကို ထည့်ပါ။ စုစုပေါင်းက Amount နဲ့တူရပါမယ်။":"ရာခိုင်နှုန်းထည့်ပါ။ စုစုပေါင်းကို app က Amount အဖြစ်ပြောင်းတွက်ပေးပါမယ်။";
+     $("gemShares").innerHTML=people.map(name=>{const o=old.find(x=>x.member===name);const v=o?o.amount:(split==="percentage"?100/n:each);return `<div class="simple-share-row"><span>👤 ${escHtml(name)}</span><div class="simple-share-input"><input data-share-name="${escHtml(name)}" type="number" min="0" step="0.01" value="${Number(v).toFixed(2)}"><small>${split==="percentage"?"%":"THB"}</small></div></div>`}).join("");
+   }
+   const who=people.length?people.join(" + "):"ยังไม่ได้เลือก";$("gemPreview").innerHTML=`<span>Shared by</span><b>${escHtml(who)}</b><strong>฿${money(amount)}</strong>`;
  };
- const setSplit=v=>{split=v;document.querySelectorAll("#gemSplit [data-split]").forEach(b=>b.classList.toggle("active",b.dataset.split===v));renderShares()};
- $("gemSplit").querySelectorAll("[data-split]").forEach(b=>b.onclick=()=>setSplit(b.dataset.split));
- $("gemSelectAll").onclick=()=>{selected=new Set(members);personal=false;$("gemPersonal").checked=false;renderPeople();renderShares()};
- $("gemPersonal").checked=personal;
- $("gemPersonal").onchange=()=>{personal=$("gemPersonal").checked;if(personal){const p=String($("gemPaidBy").value||members[0]);selected=new Set([p])}else selected=new Set(members);renderPeople();renderShares()};
- $("gemPaidBy").innerHTML=members.map(x=>`<option value="${escHtml(x)}">${escHtml(x)}</option>`).join("");
- $("gemPaidBy").value=current.paidBy||members[0];
- $("gemPaidBy").onchange=()=>{if(personal){selected=new Set([String($("gemPaidBy").value)]);renderPeople();renderShares()}};
- $("gemAmount").oninput=()=>renderShares();
- $("gemAutoFill").onclick=()=>{renderShares();document.querySelectorAll(".gem-share-input").forEach(i=>{if(!i.disabled){const n=document.querySelectorAll(".gem-share-input").length||1;i.value=(split==="percentage"?(100/n).toFixed(2):((Number($("gemAmount").value||0))/n).toFixed(2))}})};
- setSplit(split);renderPeople();renderShares();
- const close=()=>m.remove();$("modalClose").onclick=close;$("gemCancel").onclick=close;
+ const setPersonal=()=>{
+   personal=$("gemPersonal").checked;
+   $("gemSharedBox").style.display=personal?"none":"block";$("gemSplitBox").style.display=personal?"none":"block";
+   if(personal)selected=new Set([String($("gemPaidBy").value||members[0])]);else if(!selected.size)selected=new Set(members);
+   renderPeople();renderSplit();
+ };
+ $("gemPersonal").checked=personal;$("gemPersonal").onchange=setPersonal;
+ $("gemPaidBy").onchange=()=>{if(personal){selected=new Set([String($("gemPaidBy").value)]);renderSplit()}};
+ $("gemSelectAll").onclick=()=>{selected=new Set(members);$("gemPersonal").checked=false;setPersonal()};
+ $("gemAmount").oninput=renderSplit;
+ $("gemSplit").querySelectorAll("[data-split]").forEach(b=>b.onclick=()=>{split=b.dataset.split;$("gemSplit").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));renderSplit()});
  $("gemSave").onclick=()=>{
    const amount=Number($("gemAmount").value),people=personal?[String($("gemPaidBy").value)]:[...selected];
-   if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");
-   if(!people.length)return toast("Select at least one person");
-   const inputs=[...document.querySelectorAll(".gem-share-input")];
-   let shares=people.map(name=>{const input=inputs.find(i=>i.dataset.shareName===name);return {member:name,amount:Number(input?.value||0)}});
-   if(split==="equal"){const each=Number((amount/people.length).toFixed(2));shares=people.map((member,i)=>({member,amount:i===people.length-1?Number((amount-each*(people.length-1)).toFixed(2)):each}))}
-   if(split==="percentage"){const pct=shares.reduce((n,x)=>n+x.amount,0);if(pct<=0)return toast("Enter percentage values");shares=shares.map(x=>({member:x.member,amount:Number((amount*x.amount/pct).toFixed(2))}));}
-   else if(split==="custom"){const sum=shares.reduce((n,x)=>n+x.amount,0);if(Math.abs(sum-amount)>.01)return toast("Custom amounts must equal the total amount");}
-   const record={id:existing?.id||crypto.randomUUID(),category:$("gemCategory").value,amount,date:$("gemDate").value,time:$("gemTime").value,paidBy:$("gemPaidBy").value,participants:people,splitMethod:personal?"equal":split,shares:personal?[{member:people[0],amount}]:shares,paymentMethod:$("gemPayment").value,location:$("gemLocation").value.trim(),receipt:existing?.receipt||"",note:$("gemNote").value.trim(),createdAt:existing?.createdAt||new Date().toISOString()};
-   if(!Array.isArray(t.members))t.members=[];t.members=[...new Set([...t.members,...members])].slice(0,30);
-   if(existing)Object.assign(existing,record);else t.expenses.push(record);
-   save();render();toast(existing?"Group expense updated":"Group expense saved");
+   if(!Number.isFinite(amount)||amount<=0)return toast("Amount ကို မှန်ကန်စွာထည့်ပါ");
+   if(!people.length)return toast("အသုံးပြုသူ အနည်းဆုံး ၁ ယောက်ရွေးပါ");
+   let shares;
+   if(personal)shares=[{member:people[0],amount}];
+   else if(split==="equal"){const each=Number((amount/people.length).toFixed(2));shares=people.map((member,i)=>({member,amount:i===people.length-1?Number((amount-each*(people.length-1)).toFixed(2)):each}))}
+   else{const inputs=[...document.querySelectorAll("[data-share-name]")];let vals=people.map(name=>({member:name,amount:Number(inputs.find(i=>i.dataset.shareName===name)?.value||0)}));if(split==="percentage"){const pct=vals.reduce((n,x)=>n+x.amount,0);if(pct<=0)return toast("Percentage ထည့်ပါ");vals=vals.map(x=>({member:x.member,amount:Number((amount*x.amount/pct).toFixed(2))}))}else{const sum=vals.reduce((n,x)=>n+x.amount,0);if(Math.abs(sum-amount)>.01)return toast("ကိုယ်စီငွေ စုစုပေါင်းက Amount နဲ့တူရပါမယ်")}shares=vals}
+   const record={id:existing?.id||crypto.randomUUID(),category:$("gemCategory").value,amount,date:$("gemDate").value,time:$("gemTime").value,paidBy:$("gemPaidBy").value,participants:people,splitMethod:personal?"personal":split,shares,paymentMethod:$("gemPayment").value,location:$("gemLocation").value.trim(),receipt:existing?.receipt||"",note:$("gemNote").value.trim(),createdAt:existing?.createdAt||new Date().toISOString()};
+   t.members=[...new Set([...(t.members||[]),...members])].slice(0,30);if(existing)Object.assign(existing,record);else t.expenses.push(record);save();render();toast(existing?"Expense updated":"Expense saved");
  };
+ const close=()=>modal.remove();$("modalClose").onclick=close;$("gemCancel").onclick=close;
+ setPersonal();document.querySelectorAll("#gemSplit button").forEach(b=>b.classList.toggle("active",b.dataset.split===split));
 }
+
 document.addEventListener("click",e=>{
  const tripMap=e.target.closest("[data-trip-map]");if(tripMap){const t=db.trips.find(x=>x.id===db.activeTripId);if(t)openTripMap(t);return}
 
