@@ -380,6 +380,29 @@ function itineraryMarkup(t){
  if(!keys.length)return '<div class="card empty"><b>No itinerary yet</b><p>Add route stops with planned dates and times.</p></div>';
  return `<div class="itinerary-list">${keys.map(k=>`<div class="itinerary-day card"><div class="itinerary-date"><span>${k==="Unscheduled"?"—":new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:"short"})}</span><b>${esc(k)}</b></div><div class="itinerary-items">${groups[k].slice().sort((a,b)=>String(a.time||"99:99").localeCompare(String(b.time||"99:99"))).map(s=>`<div class="itinerary-item ${s.reached?"done":""}"><span class="itinerary-time">${esc(s.time||"—")}</span><div><b>${esc(s.name)}</b><small>${s.completed?"✓ Completed":s.reached?"● Reached":"○ Planned"}${s.note?" · "+esc(s.note):""}</small></div><a class="map-link" href="${mapsSearchUrl(s)}" target="_blank" rel="noopener">Map</a></div>`).join("")}</div></div>`).join("")}</div>`;
 }
+function tripMembers(t){const names=Array.isArray(t?.members)?t.members.map(x=>String(x||"").trim()).filter(Boolean):[];return names.length?names:[db.profile?.name1||"Me"]}
+function parseExpenseShares(raw,method,amount,participants){
+ const names=participants.length?participants:[db.profile?.name1||"Me"],text=String(raw||"").trim();
+ if(!names.length)return [];
+ if(method==="equal"||!text)return names.map(member=>({member,amount:Number((amount/names.length).toFixed(2))}));
+ const map={};text.split(",").map(x=>x.trim()).filter(Boolean).forEach(x=>{const m=x.match(/^(.+?)\s*=\s*([0-9.]+)\s*%?$/);if(m)map[m[1].trim()]=Number(m[2])});
+ if(method==="percentage"){const totalPct=Object.values(map).reduce((a,b)=>a+b,0);if(totalPct>0)return names.map(member=>({member,amount:Number((amount*(Number(map[member]||0)/totalPct)).toFixed(2))}))}
+ const custom=names.map(member=>({member,amount:Number(map[member]||0)})),sum=custom.reduce((a,b)=>a+b.amount,0);
+ return sum>0?custom:names.map(member=>({member,amount:Number((amount/names.length).toFixed(2))}));
+}
+function groupExpenseSummary(t){
+ const members=tripMembers(t),totals={},paid={};members.forEach(m=>{totals[m]=0;paid[m]=0});
+ (t.expenses||[]).forEach(e=>{const people=e.participants?.length?e.participants:members,shares=e.shares?.length?e.shares:parseExpenseShares("", "equal", Number(e.amount||0), people);shares.forEach(x=>{totals[x.member]=(totals[x.member]||0)+Number(x.amount||0)});const p=e.paidBy||members[0];paid[p]=(paid[p]||0)+Number(e.amount||0)});
+ const rows=Object.keys(totals).map(member=>({member,share:totals[member]||0,paid:paid[member]||0,balance:(paid[member]||0)-(totals[member]||0)}));
+ const debtors=rows.filter(x=>x.balance<-.005).map(x=>({member:x.member,amount:-x.balance})),creditors=rows.filter(x=>x.balance>.005).map(x=>({member:x.member,amount:x.balance})),settlements=[];let di=0,ci=0;
+ while(di<debtors.length&&ci<creditors.length){const n=Math.min(debtors[di].amount,creditors[ci].amount);settlements.push({from:debtors[di].member,to:creditors[ci].member,amount:n});debtors[di].amount-=n;creditors[ci].amount-=n;if(debtors[di].amount<=.005)di++;if(creditors[ci].amount<=.005)ci++}
+ return {members:rows,settlements,totalSpent:(t.expenses||[]).reduce((n,e)=>n+Number(e.amount||0),0)};
+}
+function groupExpenseSummaryCard(t){
+ const x=groupExpenseSummary(t),people=x.members.map(r=>'<div class="group-expense-person"><div><b>'+esc(r.member)+'</b><small>Share ฿'+money(r.share)+' · Paid ฿'+money(r.paid)+'</small></div><strong class="'+(r.balance>=0?'positive':'negative')+'">'+(r.balance>=0?'+':'−')+'฿'+money(Math.abs(r.balance))+'</strong></div>').join("");
+ const settle=x.settlements.length?x.settlements.map(r=>'<div class="settlement-row"><span>'+esc(r.from)+'</span><b>→</b><span>'+esc(r.to)+'</span><strong>฿'+money(r.amount)+'</strong></div>').join(""):'<div class="muted">Everyone is settled.</div>';
+ return '<div class="card group-expense-card"><div class="section-title"><div><div class="eyebrow">GROUP EXPENSES</div><h3>Who owes what</h3><p class="muted">'+x.members.length+' people · ฿'+money(x.totalSpent)+' recorded</p></div><button class="btn secondary" id="manageTripMembers">👥 People</button></div><div class="group-expense-people">'+people+'</div><div class="settlement-title"><b>Settlement</b><small>Suggested payments</small></div><div class="settlement-list">'+settle+'</div></div>';
+}
 function expenseBreakdown(t){
  const m={};
  const category=k=>{const x=String(k||"Other").trim().toLowerCase();if(/transport|taxi|grab|bus|train|bts|mrt|flight|motorbike|boat|walk/.test(x))return "Transportation";if(/food|meal|restaurant|drink|coffee/.test(x))return "Food";if(/hotel|room|stay|accommodation|resort|hostel/.test(x))return "Hotel";if(/shop|shopping|souvenir|gift/.test(x))return "Shopping";return String(k||"Other").trim()||"Other"};
