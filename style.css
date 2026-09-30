@@ -1462,3 +1462,22 @@ textarea{min-height:100px;resize:vertical}
 .expense-total-preview{display:flex;align-items:center;gap:8px;margin:12px 0;padding:11px 13px;border-radius:12px;background:rgba(126,91,255,.08);border:1px solid rgba(126,91,255,.18);font-size:11px;color:rgba(220,232,250,.6)}
 .expense-total-preview b{color:#f0f5ff;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.expense-total-preview strong{margin-left:auto;color:#7cefff;font-size:15px}
 @media(max-width:700px){.expense-easy-modal{width:min(94vw,680px);padding:17px 13px 13px}.expense-amount-row{grid-template-columns:1fr 1fr}.expense-amount-row .field:first-child{grid-column:1/-1}.simple-share-input{width:135px}}
+
+/* ===== CLEAN PAGE SYSTEM ===== */
+#app{width:100%;max-width:1180px;margin:0 auto;padding:18px 18px 110px;box-sizing:border-box}
+.page-head-clear{display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:16px 18px;border:1px solid rgba(105,211,255,.13);border-radius:20px;background:linear-gradient(135deg,rgba(17,29,67,.88),rgba(9,15,39,.76));box-shadow:0 12px 35px rgba(0,0,0,.16)}
+.page-head-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,rgba(36,220,247,.18),rgba(125,94,255,.2));border:1px solid rgba(83,226,255,.2);font-size:22px;flex:none}
+.page-head-copy{min-width:0}.page-head-copy h1{margin:2px 0 3px;font-size:clamp(23px,4vw,31px);letter-spacing:-.02em}.page-guide{margin-top:6px;color:rgba(220,232,250,.62);font-size:11px;line-height:1.5}
+.section-title{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:24px 2px 11px}.section-title h2{margin:0;font-size:18px}.section-title .muted{font-size:11px}
+.card{border-radius:18px}.panel{padding:18px}
+.form-grid{gap:12px}.field label{font-size:11px;font-weight:700;letter-spacing:.01em}.field input,.field select,.field textarea{min-height:46px;box-sizing:border-box}
+.actions{display:flex;flex-wrap:wrap;gap:9px}.btn{min-height:44px;padding:10px 15px;border-radius:12px;font-weight:800}.mini-btn{min-height:36px;padding:7px 10px;border-radius:10px}
+.empty{padding:30px 18px!important;text-align:center}.empty .big{font-size:30px;margin-bottom:8px}
+.badge{font-size:9px;letter-spacing:.08em;font-weight:800}
+.trip-card,.special-card,.expense-cat-row,.daily-expense-row,.memory-card{transition:transform .18s ease,border-color .18s ease}.trip-card:hover,.special-card:hover,.expense-cat-row:hover,.daily-expense-row:hover{transform:translateY(-1px);border-color:rgba(84,226,255,.22)}
+.bottom-nav{padding-bottom:max(8px,env(safe-area-inset-bottom));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.nav-btn{min-width:68px;min-height:56px}.nav-btn span{font-size:9px;font-weight:700}
+@media(max-width:700px){
+ #app{padding:10px 12px 104px}.page-head-clear{margin:2px 0 13px;padding:13px 14px;border-radius:17px;gap:11px}.page-head-icon{width:42px;height:42px;border-radius:13px;font-size:19px}.page-head-copy h1{font-size:22px}.page-guide{font-size:10px}
+ .section-title{margin:18px 1px 9px}.section-title h2{font-size:16px}.panel{padding:14px}.actions .btn{flex:1 1 auto}
+}
