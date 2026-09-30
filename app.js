@@ -23,14 +23,23 @@ function normalizeData(raw){
       ...e,id:e?.id||uid(),category:String(e?.category||"Other"),
       amount:Number.isFinite(Number(e?.amount))?Math.max(0,Number(e.amount)):0,
       date:/^\d{4}-\d{2}-\d{2}$/.test(String(e?.date||""))?String(e.date):"",
+      time:/^\d{2}:\d{2}$/.test(String(e?.time||""))?String(e.time):"",
+      paidBy:String(e?.paidBy||"").slice(0,120),
+      participants:Array.isArray(e?.participants)?e.participants.map(x=>String(x||"").trim()).filter(Boolean):[],
+      splitMethod:["equal","custom","percentage"].includes(e?.splitMethod)?e.splitMethod:"equal",
+      shares:Array.isArray(e?.shares)?e.shares.map(x=>({member:String(x?.member||"").trim(),amount:Number.isFinite(Number(x?.amount))?Math.max(0,Number(x.amount)):0})).filter(x=>x.member):[],
+      paymentMethod:String(e?.paymentMethod||"Cash").slice(0,60),
+      location:String(e?.location||"").slice(0,180),
+      receipt:String(e?.receipt||""),
       note:String(e?.note||"").slice(0,500)
     })):[];
+    const members=Array.isArray(t?.members)?t.members.map(x=>String(x||"").trim()).filter(Boolean).slice(0,30):[];
     return {
       id:t?.id||uid(),name:String(t?.name||"Untitled Trip").slice(0,180),destination:String(t?.destination||"").slice(0,180),
       startDate:/^\d{4}-\d{2}-\d{2}$/.test(String(t?.startDate||""))?String(t.startDate):"",
       endDate:/^\d{4}-\d{2}-\d{2}$/.test(String(t?.endDate||""))?String(t.endDate):"",
       budget:Number.isFinite(Number(t?.budget))?Math.max(0,Number(t.budget)):0,
-      stops,expenses,memories:Array.isArray(t?.memories)?t.memories:[],cover:String(t?.cover||""),
+      members,stops,expenses,memories:Array.isArray(t?.memories)?t.memories:[],cover:String(t?.cover||""),
       finished:!!t?.finished,createdAt:t?.createdAt||new Date().toISOString(),finishedAt:t?.finishedAt||null,
       updatedAt:t?.updatedAt||t?.createdAt||Date.now()
     };
