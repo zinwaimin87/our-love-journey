@@ -380,7 +380,11 @@ function itineraryMarkup(t){
  if(!keys.length)return '<div class="card empty"><b>No itinerary yet</b><p>Add route stops with planned dates and times.</p></div>';
  return `<div class="itinerary-list">${keys.map(k=>`<div class="itinerary-day card"><div class="itinerary-date"><span>${k==="Unscheduled"?"—":new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:"short"})}</span><b>${esc(k)}</b></div><div class="itinerary-items">${groups[k].slice().sort((a,b)=>String(a.time||"99:99").localeCompare(String(b.time||"99:99"))).map(s=>`<div class="itinerary-item ${s.reached?"done":""}"><span class="itinerary-time">${esc(s.time||"—")}</span><div><b>${esc(s.name)}</b><small>${s.completed?"✓ Completed":s.reached?"● Reached":"○ Planned"}${s.note?" · "+esc(s.note):""}</small></div><a class="map-link" href="${mapsSearchUrl(s)}" target="_blank" rel="noopener">Map</a></div>`).join("")}</div></div>`).join("")}</div>`;
 }
-function tripMembers(t){const names=Array.isArray(t?.members)?t.members.map(x=>String(x||"").trim()).filter(Boolean):[];return names.length?names:[db.profile?.name1||"Me"]}
+function tripMembers(t){
+ const own=String(db.profile?.name1||"Min 💕").trim()||"Me";
+ const saved=Array.isArray(t?.members)?t.members.map(x=>String(x||"").trim()).filter(Boolean):[];
+ return [...new Set([own,"Khom","Zin Min Thu",...saved])].slice(0,30);
+}
 function parseExpenseShares(raw,method,amount,participants){
  const names=participants.length?participants:[db.profile?.name1||"Me"],text=String(raw||"").trim();
  if(!names.length)return [];
@@ -597,6 +601,84 @@ async function openMapPicker(initialLat=null,initialLng=null,initialName=""){con
  }
 };document.getElementById("mapSearchBtn").onclick=()=>search();document.querySelectorAll("[data-city]").forEach(b=>b.onclick=()=>search(b.dataset.city));const thailandBtn=document.createElement("button");thailandBtn.className="btn secondary";thailandBtn.type="button";thailandBtn.textContent="🇹🇭 Thailand";thailandBtn.onclick=()=>{selected=null;map.setView(THAILAND_CENTER,11);marker?.remove();marker=null;document.getElementById("mapSearchInput").value="";clearResults();show()};document.querySelector(".map-picker-search")?.appendChild(thailandBtn);const locateBtn=document.createElement("button");locateBtn.className="btn secondary";locateBtn.type="button";locateBtn.textContent="📍 My Location";locateBtn.onclick=()=>{if(!navigator.geolocation)return toast("Location is not available");navigator.geolocation.getCurrentPosition(p=>{const x={lat:p.coords.latitude,lng:p.coords.longitude};if(x.lat<5||x.lat>21.5||x.lng<97||x.lng>106){toast("📍 Location is outside Thailand.");map.setView(THAILAND_CENTER,11);return}map.setView([x.lat,x.lng],16);put(x,"My Location")},()=>toast("Location permission was not granted"),{enableHighAccuracy:true,timeout:10000,maximumAge:30000})};document.querySelector(".map-picker-search")?.appendChild(locateBtn);document.getElementById("mapSearchInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();search()}};const close=v=>{m.remove();resolve(v)};document.getElementById("mapPickerClose").onclick=()=>close(null);document.getElementById("mapPickerCancel").onclick=()=>close(null);document.getElementById("mapPickerSave").onclick=()=>selected?close(selected):toast("Choose a location first");setTimeout(()=>map.invalidateSize(),150)})}
 function openFormModal(title,fields,onSave){document.getElementById("formModal")?.remove();const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";m.innerHTML=`<div class="modal-card"><button class="modal-close" id="modalClose">×</button><div class="eyebrow">QUICK ENTRY</div><h2>${title}</h2><div class="modal-fields">${fields.map(f=>f.type==="hidden"?`<input id="mf_${f.id}" type="hidden" value="${esc(f.value||"")}">`:f.type==="select"?`<div class="field"><label>${f.label}</label><select id="mf_${f.id}">${f.options.map(o=>{const v=typeof o==="object"?o.value:o;const l=typeof o==="object"?o.label:o;return `<option value="${esc(v)}">${esc(l)}</option>`}).join("")}</select></div>`:f.type==="textarea"?`<div class="field"><label>${f.label}</label><textarea id="mf_${f.id}" placeholder="${esc(f.placeholder||"")}">${esc(f.value||"")}</textarea></div>`:`<div class="field"><label>${f.label}</label><input id="mf_${f.id}" type="${f.type}" value="${esc(f.value||"")}" placeholder="${esc(f.placeholder||"")}"></div>`).join("")}</div><div class="actions"><button class="btn" id="modalSave">Save</button><button class="btn secondary" id="modalCancel">Cancel</button></div></div>`;document.body.appendChild(m);const close=()=>m.remove();m.querySelector("#modalClose").onclick=close;m.querySelector("#modalCancel").onclick=close;m.querySelector("#modalSave").onclick=()=>{const vals={};fields.forEach(f=>vals[f.id]=document.getElementById("mf_"+f.id).value);onSave(vals);if(document.body.contains(m))m.remove()}}
+function openGroupExpenseModal(t,existing=null){
+ const members=[...tripMembers(t)];
+ const current=existing||{};
+ let selected=new Set(Array.isArray(current.participants)&&current.participants.length?current.participants:members);
+ let personal=selected.size===1&&selected.has(String(current.paidBy||db.profile?.name1||members[0]));
+ const split=current.splitMethod||"equal";
+ const modal=document.getElementById("formModal");if(modal)modal.remove();
+ const m=document.createElement("div");m.id="formModal";m.className="modal-backdrop";
+ const escHtml=v=>esc(String(v??""));
+ const catOptions=["Transportation","Fuel","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Toll / Parking","Gifts","Internet / SIM","Medical","Other"];
+ const payOptions=["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"];
+ m.innerHTML=`<div class="modal-card group-expense-modal">
+  <button class="modal-close" id="modalClose">×</button>
+  <div class="eyebrow">QUICK ENTRY</div><h2>${existing?"Edit Group Expense":"Add Group Expense"}</h2>
+  <div class="modal-fields">
+   <div class="field"><label>Category</label><select id="gemCategory">${catOptions.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
+   <div class="field"><label>Amount (THB)</label><input id="gemAmount" type="number" min="0" step="0.01" placeholder="e.g. 900"></div>
+   <div class="gem-date-row"><div class="field"><label>Date</label><input id="gemDate" type="date"></div><div class="field"><label>Time</label><input id="gemTime" type="time"></div></div>
+   <div class="field"><label>Paid by <small>(who paid this expense?)</small></label><select id="gemPaidBy"></select></div>
+   <div class="field"><div class="gem-label-row"><label>Shared by <small>(who used / shared this expense?)</small></label><button type="button" class="gem-select-all" id="gemSelectAll">Select all</button></div><div class="gem-people" id="gemPeople"></div></div>
+   <div class="gem-personal"><div><b>Personal expense (only me)</b><small>Turn this on if this expense is for one person only.</small></div><label class="gem-switch"><input id="gemPersonal" type="checkbox"><span></span></label></div>
+   <div class="field"><label>Split method</label><div class="gem-split-tabs" id="gemSplit"><button type="button" data-split="equal">Equal split</button><button type="button" data-split="custom">Custom amount</button><button type="button" data-split="percentage">Percentage</button></div></div>
+   <div class="field"><div class="gem-label-row"><label>Custom split <small>(optional)</small></label><button type="button" class="gem-select-all" id="gemAutoFill">↗ Auto fill</button></div><div id="gemShares"></div></div>
+   <div class="field"><label>Payment method</label><select id="gemPayment">${payOptions.map(x=>`<option>${escHtml(x)}</option>`).join("")}</select></div>
+   <div class="field"><label>Location <small>(optional)</small></label><input id="gemLocation" placeholder="e.g. Pattaya, Terminal 21"></div>
+   <div class="field"><label>Note <small>(optional)</small></label><input id="gemNote" placeholder="e.g. Taxi to hotel"></div>
+  </div>
+  <div class="actions"><button class="btn" id="gemSave">Save</button><button class="btn secondary" id="gemCancel">Cancel</button></div>
+ </div>`;
+ document.body.appendChild(m);
+ const $=id=>document.getElementById(id);
+ $("gemCategory").value=current.category||"Transportation";
+ $("gemAmount").value=current.amount??"";
+ $("gemDate").value=current.date||today();$("gemTime").value=current.time||"";
+ $("gemPayment").value=current.paymentMethod||"Cash";$("gemLocation").value=current.location||"";$("gemNote").value=current.note||"";
+ const renderPeople=()=>{
+   $("gemPeople").innerHTML=members.map(name=>`<button type="button" class="gem-person ${selected.has(name)?"selected":""}" data-person="${escHtml(name)}"><span class="gem-check">${selected.has(name)?"✓":""}</span><span>${escHtml(name)}</span></button>`).join("")+
+   '<button type="button" class="gem-person gem-add-person" id="gemAddPerson"><span class="gem-plus">＋</span><span>Add</span></button>';
+   $("gemPeople").querySelectorAll("[data-person]").forEach(b=>b.onclick=()=>{if(personal)return;const n=b.dataset.person;if(selected.has(n))selected.delete(n);else selected.add(n);renderPeople();renderShares()});
+   $("gemAddPerson").onclick=()=>{const name=prompt("Enter new person name");if(!name||!name.trim())return;const n=name.trim();if(!members.includes(n))members.push(n);selected.add(n);renderPeople();renderShares()};
+ };
+ const renderShares=()=>{
+   const people=personal?[String($("gemPaidBy").value||members[0])]:[...selected];
+   const method=split;
+   $("gemShares").innerHTML=people.length?people.map(name=>{
+     const old=(current.shares||[]).find(x=>x.member===name);const equal=Number($("gemAmount").value||0)/(people.length||1);
+     const val=old?old.amount:equal;
+     return `<div class="gem-share-row"><span>${escHtml(name)}</span><div><input class="gem-share-input" data-share-name="${escHtml(name)}" type="number" min="0" step="0.01" value="${method==="equal"?equal.toFixed(2):(Number(val)||0)}" ${method==="equal"?"disabled":""}><small>${method==="percentage"?"%":"THB"}</small></div><button type="button" class="gem-remove-share" data-remove-share="${escHtml(name)}">×</button></div>`;
+   }).join(""):'<div class="muted">Select at least one person.</div>';
+   $("gemShares").querySelectorAll("[data-remove-share]").forEach(b=>b.onclick=()=>{selected.delete(b.dataset.removeShare);renderPeople();renderShares()});
+ };
+ const setSplit=v=>{split=v;document.querySelectorAll("#gemSplit [data-split]").forEach(b=>b.classList.toggle("active",b.dataset.split===v));renderShares()};
+ $("gemSplit").querySelectorAll("[data-split]").forEach(b=>b.onclick=()=>setSplit(b.dataset.split));
+ $("gemSelectAll").onclick=()=>{selected=new Set(members);personal=false;$("gemPersonal").checked=false;renderPeople();renderShares()};
+ $("gemPersonal").checked=personal;
+ $("gemPersonal").onchange=()=>{personal=$("gemPersonal").checked;if(personal){const p=String($("gemPaidBy").value||members[0]);selected=new Set([p])}else selected=new Set(members);renderPeople();renderShares()};
+ $("gemPaidBy").innerHTML=members.map(x=>`<option value="${escHtml(x)}">${escHtml(x)}</option>`).join("");
+ $("gemPaidBy").value=current.paidBy||members[0];
+ $("gemPaidBy").onchange=()=>{if(personal){selected=new Set([String($("gemPaidBy").value)]);renderPeople();renderShares()}};
+ $("gemAmount").oninput=()=>renderShares();
+ $("gemAutoFill").onclick=()=>{renderShares();document.querySelectorAll(".gem-share-input").forEach(i=>{if(!i.disabled){const n=document.querySelectorAll(".gem-share-input").length||1;i.value=(split==="percentage"?(100/n).toFixed(2):((Number($("gemAmount").value||0))/n).toFixed(2))}})};
+ setSplit(split);renderPeople();renderShares();
+ const close=()=>m.remove();$("modalClose").onclick=close;$("gemCancel").onclick=close;
+ $("gemSave").onclick=()=>{
+   const amount=Number($("gemAmount").value),people=personal?[String($("gemPaidBy").value)]:[...selected];
+   if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");
+   if(!people.length)return toast("Select at least one person");
+   const inputs=[...document.querySelectorAll(".gem-share-input")];
+   let shares=people.map(name=>{const input=inputs.find(i=>i.dataset.shareName===name);return {member:name,amount:Number(input?.value||0)}});
+   if(split==="equal"){const each=Number((amount/people.length).toFixed(2));shares=people.map((member,i)=>({member,amount:i===people.length-1?Number((amount-each*(people.length-1)).toFixed(2)):each}))}
+   if(split==="percentage"){const pct=shares.reduce((n,x)=>n+x.amount,0);if(pct<=0)return toast("Enter percentage values");shares=shares.map(x=>({member:x.member,amount:Number((amount*x.amount/pct).toFixed(2))}));}
+   else if(split==="custom"){const sum=shares.reduce((n,x)=>n+x.amount,0);if(Math.abs(sum-amount)>.01)return toast("Custom amounts must equal the total amount");}
+   const record={id:existing?.id||crypto.randomUUID(),category:$("gemCategory").value,amount,date:$("gemDate").value,time:$("gemTime").value,paidBy:$("gemPaidBy").value,participants:people,splitMethod:personal?"equal":split,shares:personal?[{member:people[0],amount}]:shares,paymentMethod:$("gemPayment").value,location:$("gemLocation").value.trim(),receipt:existing?.receipt||"",note:$("gemNote").value.trim(),createdAt:existing?.createdAt||new Date().toISOString()};
+   if(!Array.isArray(t.members))t.members=[];t.members=[...new Set([...t.members,...members])].slice(0,30);
+   if(existing)Object.assign(existing,record);else t.expenses.push(record);
+   save();render();toast(existing?"Group expense updated":"Group expense saved");
+ };
+}
 document.addEventListener("click",e=>{
  const tripMap=e.target.closest("[data-trip-map]");if(tripMap){const t=db.trips.find(x=>x.id===db.activeTripId);if(t)openTripMap(t);return}
 
@@ -714,20 +796,7 @@ document.addEventListener("click",e=>{
   {id:"note",label:"Note",type:"text",placeholder:"Optional"}
  ],vals=>{const price=Number(vals.price);if(!vals.from.trim()||!vals.to.trim())return toast("Enter From and To");if(price<0)return toast("Enter a valid price");s.legs=s.legs||[];s.legs.push({id:uid(),from:vals.from.trim(),to:vals.to.trim(),vehicle:vals.vehicle,price,note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Transport step saved")});return}
  const editExpense=e.target.closest("[data-edit-expense]");
- if(editExpense){const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(editExpense.dataset.editExpense));if(!ex)return;const members=tripMembers(t);openFormModal("Edit Group Expense",[
- {id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Toll / Parking","Gifts","Internet / SIM","Medical","Other"]},
- {id:"amount",label:"Amount (THB)",type:"number",value:String(ex.amount||""),placeholder:"e.g. 250"},
- {id:"date",label:"Date",type:"date",value:ex.date||today()},
- {id:"time",label:"Time",type:"time",value:ex.time||""},
- {id:"paidBy",label:"Paid by",type:"select",options:members.map(x=>({value:x,label:x}))},
- {id:"participants",label:"Shared by (comma separated)",type:"text",value:(ex.participants||members).join(", ")},
- {id:"splitMethod",label:"Split method",type:"select",options:[{value:"equal",label:"Equal split"},{value:"custom",label:"Custom amounts"},{value:"percentage",label:"Percentage split"}]},
- {id:"customShares",label:"Custom split",type:"text",placeholder:"Name=amount, Name=amount"},
- {id:"paymentMethod",label:"Payment method",type:"select",options:["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"]},
- {id:"location",label:"Location",type:"text",value:ex.location||"",placeholder:"e.g. Pattaya"},
- {id:"note",label:"Note",type:"text",value:ex.note||"",placeholder:"Optional note"}],
- vals=>{const amount=Number(vals.amount),people=vals.participants.split(",").map(x=>x.trim()).filter(Boolean);if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");if(!people.length)return toast("Add at least one person");ex.category=vals.category;ex.amount=amount;ex.date=vals.date;ex.time=vals.time;ex.paidBy=vals.paidBy;ex.participants=people;ex.splitMethod=vals.splitMethod;ex.shares=parseExpenseShares(vals.customShares,vals.splitMethod,amount,people);ex.paymentMethod=vals.paymentMethod;ex.location=vals.location.trim();ex.note=vals.note.trim();save();render();toast("Group expense updated")});
- setTimeout(()=>{const c=document.getElementById("mf_category");if(c)c.value=ex.category;const p=document.getElementById("mf_paidBy");if(p)p.value=ex.paidBy||members[0];const m=document.getElementById("mf_splitMethod");if(m)m.value=ex.splitMethod||"equal"},0);return}
+ if(editExpense){const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(editExpense.dataset.editExpense));if(!ex)return;openGroupExpenseModal(t,ex);return}
  const deleteExpense=e.target.closest("[data-delete-expense]");
  if(deleteExpense){
   const t=db.trips.find(x=>x.id===db.activeTripId),ex=t?.expenses.find(x=>String(x.id)===String(deleteExpense.dataset.deleteExpense));if(!ex)return;
@@ -777,19 +846,7 @@ document.addEventListener("click",e=>{
  const mapBox=document.querySelector("#formModal .actions");if(mapBox){const btn=document.createElement("button");btn.className="btn secondary map-picker-trigger";btn.type="button";btn.textContent="📍 Pick Location on Map";btn.onclick=async()=>{const p=await openMapPicker(document.getElementById("mf_mapLat").value,document.getElementById("mf_mapLng").value,document.getElementById("mf_stopName").value);if(p){document.getElementById("mf_mapLat").value=p.lat;document.getElementById("mf_mapLng").value=p.lng;btn.textContent="📍 Location Selected";toast("Map location selected")}};mapBox.insertBefore(btn,mapBox.firstChild)}return}
  const managePeople=e.target.closest("#manageTripMembers");
  if(managePeople){const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;openFormModal("Trip Members",[{id:"members",label:"People (one per line or comma separated)",type:"textarea",value:tripMembers(t).join("\n"),placeholder:"Zin Wai Min\nKhom\nZin Min Thu"}],vals=>{const list=vals.members.split(/[\n,]/).map(x=>x.trim()).filter(Boolean).slice(0,30);t.members=list.length?list:[db.profile?.name1||"Me"];save();render();toast(list.length+" trip member"+(list.length===1?"":"s")+" saved")});return}
- if(e.target.id==="addExpense"){const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;const members=tripMembers(t);openFormModal("Add Group Expense",[
- {id:"category",label:"Category",type:"select",options:["Transportation","Fuel","Food & Drinks","Hotel","Tickets","Shopping","Coffee","Toll / Parking","Gifts","Internet / SIM","Medical","Other"]},
- {id:"amount",label:"Amount (THB)",type:"number",placeholder:"e.g. 900"},
- {id:"date",label:"Date",type:"date",value:today()},
- {id:"time",label:"Time",type:"time"},
- {id:"paidBy",label:"Paid by",type:"select",options:members.map(x=>({value:x,label:x}))},
- {id:"participants",label:"Shared by (comma separated)",type:"text",value:members.join(", "),placeholder:"Name 1, Name 2, Name 3"},
- {id:"splitMethod",label:"Split method",type:"select",options:[{value:"equal",label:"Equal split"},{value:"custom",label:"Custom amounts"},{value:"percentage",label:"Percentage split"}]},
- {id:"customShares",label:"Custom split",type:"text",placeholder:"Custom: Name=400, Name=250"},
- {id:"paymentMethod",label:"Payment method",type:"select",options:["Cash","Bank Transfer","Credit Card","Debit Card","PromptPay","TrueMoney","Other"]},
- {id:"location",label:"Location",type:"text",placeholder:"e.g. Pattaya"},
- {id:"note",label:"Note",type:"text",placeholder:"e.g. Seafood dinner"}],
- vals=>{const amount=Number(vals.amount),people=vals.participants.split(",").map(x=>x.trim()).filter(Boolean);if(!Number.isFinite(amount)||amount<=0)return toast("Enter a valid amount");if(!people.length)return toast("Add at least one person");const shares=parseExpenseShares(vals.customShares,vals.splitMethod,amount,people);t.expenses.push({id:crypto.randomUUID(),category:vals.category,amount,date:vals.date,time:vals.time,paidBy:vals.paidBy,participants:people,splitMethod:vals.splitMethod,shares,paymentMethod:vals.paymentMethod,location:vals.location.trim(),receipt:"",note:vals.note.trim(),createdAt:new Date().toISOString()});save();render();toast("Group expense saved")});return}
+ if(e.target.id==="addExpense"){const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;openGroupExpenseModal(t);return}
  if(e.target.id==="finishTrip"){const t=db.trips.find(x=>x.id===db.activeTripId);if(!t)return;const pending=(t.stops||[]).filter(s=>!s.completed);if(pending.length&& !confirm(`There are ${pending.length} stop(s) not completed. Finish this journey anyway?`))return;if(confirm("Finish this journey and archive it?")){t.finished=true;t.finishedAt=new Date().toISOString();db.activeTripId=t.id;save();go("history");toast("Journey archived · Opening History Detail")}}
 });
 window.render=render;window.addEventListener("hashchange",render);render();
